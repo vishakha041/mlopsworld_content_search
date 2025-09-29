@@ -1,0 +1,5 @@
+pydantic
+langchain-core
+numpy
+aperturedb
+sentence-transformers
