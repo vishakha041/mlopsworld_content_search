@@ -3,3 +3,7 @@ langchain-core
 numpy
 aperturedb
 sentence-transformers
+langgraph
+langchain
+langchain-google-genai
+python-dotenv

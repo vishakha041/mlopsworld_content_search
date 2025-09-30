@@ -11,17 +11,17 @@ Built for the MLOps Events dataset with schema:
 - Three descriptor sets: ds_transcript_chunks_v1, ds_talk_meta_v1, ds_speaker_bio_v1
 """
 
-# Import utilities and configurations
-from utils import *
+# Import utilities and configurations (use explicit relative import)
+from .utils import *
 
 # ===== IMPORT TOOL IMPLEMENTATIONS =====
-# Import the individual tool implementations
-from search_talks_by_filters import search_talks_by_filters
-from search_talks_semantically import search_talks_semantically
-from analyze_speaker_activity import analyze_speaker_activity
-from get_talk_details import get_talk_details
-from find_similar_content import find_similar_content
-from analyze_topics_and_trends import analyze_topics_and_trends
+# Import the individual tool implementations (relative imports)
+from .search_talks_by_filters import search_talks_by_filters
+from .search_talks_semantically import search_talks_semantically
+from .analyze_speaker_activity import analyze_speaker_activity
+from .get_talk_details import get_talk_details
+from .find_similar_content import find_similar_content
+from .analyze_topics_and_trends import analyze_topics_and_trends
 
 # Export all tools for easy importing
 __all__ = [

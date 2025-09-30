@@ -4,11 +4,11 @@ from pydantic import BaseModel, Field
 from langchain_core.tools import tool
 
 # Import shared utilities
-from utils import (
+from .utils import (
     get_db_connector, get_embedding_model, to_blob, safe_get,
-    format_date_constraint, get_text_field_name,
-    SET_TRANSCRIPT, SET_META, SET_BIO, EMBED_MODEL, EMBED_DIM
+    format_date_constraint, get_text_field_name, SET_TRANSCRIPT, SET_META
 )
+ 
 
 DEBUG_SIMQ = False  # set True temporarily to log the query JSON and raw responses
 

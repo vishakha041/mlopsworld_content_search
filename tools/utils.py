@@ -10,6 +10,10 @@ import numpy as np
 from typing import Optional, Any
 from datetime import datetime
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
 # ApertureDB imports
 from aperturedb.CommonLibrary import create_connector
 from aperturedb import Connector
@@ -44,9 +48,16 @@ def get_db_connector():
     """Lazy initialization of the ApertureDB connector."""
     global _db_connector
     if _db_connector is None:
-        if not APERTUREDB_KEY:
-            raise ValueError("APERTUREDB_KEY environment variable must be set")
-        _db_connector = create_connector(key=APERTUREDB_KEY)
+        # Re-check environment variable at runtime (in case it was set after import)
+        adb_key = os.getenv("APERTUREDB_KEY") or APERTUREDB_KEY
+        if not adb_key:
+            raise ValueError(
+                "APERTUREDB_KEY environment variable must be set. "
+                "Please check your .env file."
+            )
+        print(f"🔌 Connecting to ApertureDB (key length: {len(adb_key)} chars)...")
+        _db_connector = create_connector(key=adb_key)
+        print("✅ ApertureDB connection established!")
     return _db_connector
 
 def to_blob(vec: np.ndarray) -> bytes:

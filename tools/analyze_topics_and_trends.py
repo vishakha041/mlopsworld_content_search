@@ -7,7 +7,7 @@ import re
 from collections import defaultdict, Counter
 
 # Import shared utilities
-from utils import (
+from .utils import (
     get_db_connector, get_embedding_model, to_blob, safe_get,
     format_date_constraint, get_text_field_name,
     SET_TRANSCRIPT, SET_META, SET_BIO, EMBED_MODEL

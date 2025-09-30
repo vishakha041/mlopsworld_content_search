@@ -5,9 +5,9 @@ from pydantic import BaseModel, Field
 from langchain_core.tools import tool
 
 # Import shared utilities
-from utils import (
-    get_db_connector, get_embedding_model, to_blob, safe_get, 
-    format_date_constraint, SET_TRANSCRIPT, SET_META, SET_BIO
+from .utils import (
+    get_db_connector, safe_get, format_date_constraint,
+    get_embedding_model, to_blob, SET_TRANSCRIPT, SET_META, SET_BIO, EMBED_MODEL
 )
 
 class GetTalkDetailsInput(BaseModel):
