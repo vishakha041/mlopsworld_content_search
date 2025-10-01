@@ -176,11 +176,11 @@ def query_agent(
                         # For tool results, format nicely
                         if "ToolMessage" in str(type(last_message)):
                             # Truncate long tool results
-                            if len(content) > 500:
-                                print(f"   {content[:500]}...")
-                                print(f"   ... (truncated, total length: {len(content)} chars)")
-                            else:
-                                print(f"   {content}")
+                            # if len(content) > 500:
+                            #     print(f"   {content[:500]}...")
+                            #     print(f"   ... (truncated, total length: {len(content)} chars)")
+                            # else:
+                            print(f"   {content}")
                         else:
                             print(f"   {content}")
             
@@ -226,7 +226,7 @@ def get_final_answer(response: Dict[str, Any]) -> str:
 # Optional: Quick test function
 def test_agent():
     """Quick test of the agent with a simple query."""
-    test_query = "Which talks discuss LLM obervability and evaluation?"
+    test_query = "There was a talk related to software engineering agents. Can you help me find which talk it may have been? i'd like it's youtube url"
     print("🧪 Testing agent with query:", test_query)
     response = query_agent(test_query)
     return response

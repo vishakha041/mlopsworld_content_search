@@ -110,7 +110,6 @@ search_talks_by_filters.invoke({
 search_talks_semantically.invoke({
     "query": "AI agents memory reasoning autonomous systems",
     "search_type": "all",
-    "similarity_threshold": 0.7,
     "limit": 10
 })
 ```
