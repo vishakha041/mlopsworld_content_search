@@ -195,6 +195,32 @@ def search_talks_by_filters(
         if speaker_name:
             query_parts.append(f"speaker '{speaker_name}'")
             # Multi-step query: Person -> Talk
+            # Build Talk query dynamically
+            talk_query = {
+                "with_class": "Talk",
+                "is_connected_to": {
+                    "ref": 1,
+                    "direction": "in", 
+                    "connection_class": "TalkHasSpeaker"
+                },
+                "sort": {
+                    "key": get_sort_key(sort_by),
+                    "order": "descending" if sort_order == "desc" else "ascending"
+                },
+                "limit": limit,
+                "results": {
+                    "list": [
+                        "talk_id", "talk_title", "speaker_name", "company_name",
+                        "yt_views", "yt_published_at", "youtube_url", "event_name", 
+                        "category_primary", "tech_level", "abstract", "track"
+                    ]
+                }
+            }
+            
+            # Only add constraints if they exist
+            if constraints:
+                talk_query["constraints"] = constraints
+            
             q = [
                 {
                     "FindEntity": {
@@ -204,50 +230,32 @@ def search_talks_by_filters(
                         "constraints": {"name": ["==", speaker_name]}
                     }
                 },
-                {
-                    "FindEntity": {
-                        "with_class": "Talk",
-                        "is_connected_to": {
-                            "ref": 1,
-                            "direction": "in", 
-                            "connection_class": "TalkHasSpeaker"
-                        },
-                        "constraints": constraints if constraints else None,
-                        "sort": {
-                            "key": get_sort_key(sort_by),
-                            "order": "descending" if sort_order == "desc" else "ascending"
-                        },
-                        "limit": limit,
-                        "results": {
-                            "list": [
-                                "talk_id", "talk_title", "speaker_name", "company_name",
-                                "yt_views", "yt_published_at", "youtube_url", "event_name", 
-                                "category_primary", "tech_level", "abstract", "track"
-                            ]
-                        }
-                    }
-                }
+                {"FindEntity": talk_query}
             ]
         else:
             # Single query for non-speaker filters
-            q = [{
-                "FindEntity": {
-                    "with_class": "Talk",
-                    "constraints": constraints if constraints else None,
-                    "sort": {
-                        "key": get_sort_key(sort_by),
-                        "order": "descending" if sort_order == "desc" else "ascending"
-                    },
-                    "limit": limit,
-                    "results": {
-                        "list": [
-                            "talk_id", "talk_title", "speaker_name", "company_name",
-                            "yt_views", "yt_published_at", "youtube_url", "event_name",
-                            "category_primary", "tech_level", "abstract", "track"
-                        ]
-                    }
+            # Build FindEntity query dynamically - only include constraints if they exist
+            find_entity_query = {
+                "with_class": "Talk",
+                "sort": {
+                    "key": get_sort_key(sort_by),
+                    "order": "descending" if sort_order == "desc" else "ascending"
+                },
+                "limit": limit,
+                "results": {
+                    "list": [
+                        "talk_id", "talk_title", "speaker_name", "company_name",
+                        "yt_views", "yt_published_at", "youtube_url", "event_name",
+                        "category_primary", "tech_level", "abstract", "track"
+                    ]
                 }
-            }]
+            }
+            
+            # Only add constraints if they exist
+            if constraints:
+                find_entity_query["constraints"] = constraints
+            
+            q = [{"FindEntity": find_entity_query}]
         
         # Execute query 
         resp, _ = con.query(q)
