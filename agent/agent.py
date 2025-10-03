@@ -23,7 +23,8 @@ from tools.tools import (
     analyze_speaker_activity,
     get_talk_details,
     find_similar_content,
-    analyze_topics_and_trends
+    analyze_topics_and_trends,
+    get_unique_values
 )
 
 # Import system prompt
@@ -67,7 +68,8 @@ def create_mlops_agent():
         analyze_speaker_activity,
         get_talk_details,
         find_similar_content,
-        analyze_topics_and_trends
+        analyze_topics_and_trends,
+        get_unique_values
     ]
     
     print(f"🛠️  Loaded {len(tools)} tools:")
@@ -176,11 +178,11 @@ def query_agent(
                         # For tool results, format nicely
                         if "ToolMessage" in str(type(last_message)):
                             # Truncate long tool results
-                            # if len(content) > 500:
-                            #     print(f"   {content[:500]}...")
-                            #     print(f"   ... (truncated, total length: {len(content)} chars)")
-                            # else:
-                            print(f"   {content}")
+                            if len(content) > 500:
+                                print(f"   {content[:500]}...")
+                                print(f"   ... (truncated, total length: {len(content)} chars)")
+                            else:
+                                print(f"   {content}")
                         else:
                             print(f"   {content}")
             
@@ -226,7 +228,7 @@ def get_final_answer(response: Dict[str, Any]) -> str:
 # Optional: Quick test function
 def test_agent():
     """Quick test of the agent with a simple query."""
-    test_query = "What events have taken place to date? List all their names."
+    test_query = "Give the youtube URLs of talks on fine tuning in Mlops 2024 event."
     print("🧪 Testing agent with query:", test_query)
     response = query_agent(test_query)
     return response

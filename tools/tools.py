@@ -22,6 +22,7 @@ from .analyze_speaker_activity import analyze_speaker_activity
 from .get_talk_details import get_talk_details
 from .find_similar_content import find_similar_content
 from .analyze_topics_and_trends import analyze_topics_and_trends
+from .get_unique_values import get_unique_values
 
 # Export all tools for easy importing
 __all__ = [
@@ -31,6 +32,7 @@ __all__ = [
     "get_talk_details",
     "find_similar_content",
     "analyze_topics_and_trends",
+    "get_unique_values",
     # Utility functions (from utils)
     "get_embedding_model",
     "get_db_connector",
