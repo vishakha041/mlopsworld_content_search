@@ -5,10 +5,10 @@ This package contains the LangGraph ReAct agent implementation
 for querying the MLOps Events database stored in ApertureDB.
 """
 
-from load_toml import load_toml_env
+from dotenv import load_dotenv
 
 # Load environment variables first, before any other imports
-load_toml_env()
+load_dotenv()
 
 from .agent import create_mlops_agent, query_agent, get_final_answer
 

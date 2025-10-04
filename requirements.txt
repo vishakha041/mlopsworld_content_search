@@ -6,5 +6,4 @@ sentence-transformers
 langgraph
 langchain
 langchain-google-genai
-python-dotenv
 streamlit>=1.40.0
