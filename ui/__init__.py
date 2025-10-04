@@ -15,6 +15,7 @@ from .components import (
     run_agent_with_streaming
 )
 from .styles import get_custom_css
+from .sidebar import render_results_sidebar
 
 __all__ = [
     "initialize_session_state",
@@ -27,5 +28,6 @@ __all__ = [
     "render_chat_interface",
     "render_agent_steps_panel",
     "run_agent_with_streaming",
-    "get_custom_css"
+    "get_custom_css",
+    "render_results_sidebar"
 ]

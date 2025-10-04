@@ -246,11 +246,18 @@ def run_agent_with_streaming(query: str) -> str:
                 
                 # Check if this is a tool result message
                 if "ToolMessage" in str(type(last_message)):
+                    result_content = content[:5000]
                     add_agent_step({
                         "type": "tool_result",
                         "status": "complete",
-                        "result": content[:5000]
+                        "result": result_content
                     })
+                    
+                    # Store the LAST tool result for sidebar display
+                    # Import here to avoid circular dependency
+                    from .sidebar import update_sidebar_results
+                    update_sidebar_results(content)
+                    
                     update_steps_display()
                 else:
                     # This is the final AI response - stream it

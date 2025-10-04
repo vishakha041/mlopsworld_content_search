@@ -19,7 +19,8 @@ from ui import (
     render_chat_interface,
     render_agent_steps_panel,
     run_agent_with_streaming,
-    get_custom_css
+    get_custom_css,
+    render_results_sidebar
 )
 from ui.state import add_message, set_state
 
@@ -29,7 +30,7 @@ st.set_page_config(
     page_title="MLOps Events Agent",
     page_icon="🤖",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="auto"  # Changed from "collapsed" to allow auto-open
 )
 
 
@@ -47,6 +48,9 @@ def main():
     
     # Render header
     render_header()
+    
+    # Render sidebar with results (if any)
+    render_results_sidebar()
     
     # Render example queries
     with st.expander("💡 **Example Queries**", expanded=False):

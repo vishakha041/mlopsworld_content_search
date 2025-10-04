@@ -1,5 +1,19 @@
 """
-Session State Management for Streamlit UI
+Session State Management for    # Toggle for showing/hiding agent steps
+    if "show_steps" not in st.session_state:
+        st.session_state.show_steps = True
+    
+    # Last tool results for sidebar display
+    if "last_tool_results" not in st.session_state:
+        st.session_state.last_tool_results = None
+    
+    # ApertureDB connection pool (for session-level persistence)
+    if "db_connector" not in st.session_state:
+        st.session_state.db_connector = None
+    
+    # Embedding model (for session-level persistence)
+    if "embedding_model" not in st.session_state:
+        st.session_state.embedding_model = NoneUI
 
 This module handles all Streamlit session state initialization
 and access patterns.
