@@ -228,7 +228,7 @@ def get_final_answer(response: Dict[str, Any]) -> str:
 # Optional: Quick test function
 def test_agent():
     """Quick test of the agent with a simple query."""
-    test_query = "Give the youtube URLs of talks on fine tuning in Mlops 2024 event."
+    test_query = "How many MLOPs events have taken place to date? Names?."
     print("🧪 Testing agent with query:", test_query)
     response = query_agent(test_query)
     return response

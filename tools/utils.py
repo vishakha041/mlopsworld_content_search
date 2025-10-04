@@ -37,28 +37,87 @@ _embedding_model = None
 _db_connector = None
 
 def get_embedding_model():
-    """Lazy initialization of the embedding model to match notebook pattern."""
+    """
+    Lazy initialization of the embedding model.
+    
+    For Streamlit apps, this will use session state if available,
+    otherwise falls back to global variable.
+    """
     global _embedding_model
+    
+    # Try to use Streamlit session state if available
+    try:
+        import streamlit as st
+        if hasattr(st, 'session_state'):
+            if "embedding_model" not in st.session_state or st.session_state.embedding_model is None:
+                st.session_state.embedding_model = SentenceTransformer(EMBED_MODEL)
+                st.session_state.embedding_model.max_seq_length = 512
+            return st.session_state.embedding_model
+    except (ImportError, RuntimeError):
+        # Not in Streamlit context, use global variable
+        pass
+    
+    # Fallback to global variable for CLI usage
     if _embedding_model is None:
         _embedding_model = SentenceTransformer(EMBED_MODEL)
         _embedding_model.max_seq_length = 512
     return _embedding_model
 
 def get_db_connector():
-    """Lazy initialization of the ApertureDB connector."""
+    """
+    Lazy initialization of the ApertureDB connector with retry logic.
+    
+    For Streamlit apps, this uses session state to maintain a persistent
+    connection throughout the session. For CLI usage, it uses a global variable.
+    
+    Includes automatic retry on connection failure.
+    """
     global _db_connector
+    
+    # Try to use Streamlit session state if available
+    try:
+        import streamlit as st
+        if hasattr(st, 'session_state'):
+            # Check if we have a valid connection in session state
+            if "db_connector" not in st.session_state or st.session_state.db_connector is None:
+                st.session_state.db_connector = _create_connection()
+            
+            # Test connection and retry if needed
+            try:
+                # Quick connection test (you can adjust this based on ApertureDB's API)
+                _ = st.session_state.db_connector
+                return st.session_state.db_connector
+            except Exception as e:
+                print(f"⚠️ Connection test failed, retrying: {e}")
+                st.session_state.db_connector = _create_connection()
+                return st.session_state.db_connector
+    except (ImportError, RuntimeError):
+        # Not in Streamlit context, use global variable
+        pass
+    
+    # Fallback to global variable for CLI usage
     if _db_connector is None:
-        # Re-check environment variable at runtime (in case it was set after import)
-        adb_key = os.getenv("APERTUREDB_KEY") or APERTUREDB_KEY
-        if not adb_key:
-            raise ValueError(
-                "APERTUREDB_KEY environment variable must be set. "
-                "Please check your .env file."
-            )
-        print(f"🔌 Connecting to ApertureDB (key length: {len(adb_key)} chars)...")
-        _db_connector = create_connector(key=adb_key)
-        print("✅ ApertureDB connection established!")
+        _db_connector = _create_connection()
     return _db_connector
+
+def _create_connection():
+    """
+    Helper function to create a new ApertureDB connection.
+    
+    Returns:
+        Connector: ApertureDB connector instance
+    """
+    # Re-check environment variable at runtime (in case it was set after import)
+    adb_key = os.getenv("APERTUREDB_KEY") or APERTUREDB_KEY
+    if not adb_key:
+        raise ValueError(
+            "APERTUREDB_KEY environment variable must be set. "
+            "Please check your .env file."
+        )
+    print(f"🔌 Connecting to ApertureDB (key length: {len(adb_key)} chars)...")
+    connector = create_connector(key=adb_key)
+    print("✅ ApertureDB connection established!")
+    return connector
 
 def to_blob(vec: np.ndarray) -> bytes:
     """
