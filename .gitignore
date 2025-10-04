@@ -23,3 +23,6 @@ docs/
 
 # Local config file (may contain secrets)
 config.toml
+
+# Streamlit secrets folder
+.streamlit/
