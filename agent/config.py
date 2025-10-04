@@ -6,10 +6,10 @@ including model settings and agent parameters.
 """
 
 import os
-from dotenv import load_dotenv
+from load_toml import load_toml_env
 
-# Load environment variables from .env file
-load_dotenv()
+# Load environment variables from config.toml (if present)
+load_toml_env()
 
 # ===== MODEL CONFIGURATION =====
 MODEL_PROVIDER = "google-genai"
@@ -24,13 +24,13 @@ APERTUREDB_KEY = os.getenv("APERTUREDB_KEY")
 if not GOOGLE_API_KEY:
     raise ValueError(
         "GOOGLE_API_KEY not found in environment variables. "
-        "Please set it in your .env file."
+        "Please set it in your config.toml file."
     )
 
 if not APERTUREDB_KEY:
     raise ValueError(
         "APERTUREDB_KEY not found in environment variables. "
-        "Please set it in your .env file."
+        "Please set it in your config.toml file."
     )
 
 # ===== AGENT CONFIGURATION =====

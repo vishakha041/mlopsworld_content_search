@@ -20,3 +20,6 @@ __pycache__/
 .github/
 
 docs/
+
+# Local config file (may contain secrets)
+config.toml

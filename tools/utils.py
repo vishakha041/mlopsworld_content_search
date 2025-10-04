@@ -10,9 +10,10 @@ import numpy as np
 from typing import Optional, Any
 from datetime import datetime
 
-# Load environment variables from .env file
-from dotenv import load_dotenv
-load_dotenv()
+from load_toml import load_toml_env
+
+# Load environment variables from config.toml (if present)
+load_toml_env()
 
 # ApertureDB imports
 from aperturedb.CommonLibrary import create_connector
@@ -112,7 +113,7 @@ def _create_connection():
     if not adb_key:
         raise ValueError(
             "APERTUREDB_KEY environment variable must be set. "
-            "Please check your .env file."
+            "Please check your config.toml file."
         )
     print(f"🔌 Connecting to ApertureDB (key length: {len(adb_key)} chars)...")
     connector = create_connector(key=adb_key)
