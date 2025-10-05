@@ -55,7 +55,9 @@ def render_example_queries():
                     key=f"example_{category_key}_{q_idx}",
                     use_container_width=True
                 ):
-                    st.session_state.query_input = query
+                    # Set the query in session state (don't increment counter to preserve input)
+                    st.session_state.pending_example_query = query
+                    st.rerun()
 
 
 def render_chat_interface():
@@ -65,6 +67,16 @@ def render_chat_interface():
     Returns:
         str or None: The submitted query, if any
     """
+    # Initialize the query value in session state if not exists
+    query_key = f"query_input_{st.session_state.input_key_counter}"
+    if query_key not in st.session_state:
+        st.session_state[query_key] = ""
+    
+    # Handle example query click - directly set the session state value
+    if "pending_example_query" in st.session_state and st.session_state.pending_example_query:
+        st.session_state[query_key] = st.session_state.pending_example_query
+        st.session_state.pending_example_query = None
+    
     # Input area
     st.markdown("---")
     
@@ -75,7 +87,7 @@ def render_chat_interface():
             "Ask a question:",
             placeholder="e.g., Show me talks about deployment strategies...",
             height=100,
-            key="query_input",
+            key=query_key,
             label_visibility="collapsed"
         )
     
@@ -84,6 +96,7 @@ def render_chat_interface():
         if st.button("🗑️ Clear", use_container_width=True):
             clear_chat_history()
             st.session_state.current_query = ""
+            st.session_state.input_key_counter += 1
             st.rerun()
     
     # Display chat messages
@@ -97,10 +110,16 @@ def render_chat_interface():
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
     
-    # Return submitted query
+    # Handle submit
     if submit and query.strip() and not st.session_state.is_processing:
-        st.session_state.current_query = ""  # Clear for next query
-        return query.strip()
+        # Store query in session state for processing
+        st.session_state.pending_query = query.strip()
+        # Clear chat history immediately
+        clear_chat_history()
+        st.session_state.current_query = ""
+        # Increment counter to reset input field
+        st.session_state.input_key_counter += 1
+        st.rerun()
     
     return None
 
@@ -156,53 +175,58 @@ def run_agent_with_streaming(query: str) -> str:
         str: The final agent response
     """
     from agent.agent import create_mlops_agent
+    import time
     
     # Clear previous steps
     clear_agent_steps()
     
-    # Create placeholders for streaming response and agent steps
+    # Create placeholders for streaming response and dynamic status
     response_placeholder = st.empty()
-    steps_placeholder = st.empty()
+    status_placeholder = st.empty()
     current_response = ""
     
-    # Helper function to render steps in the persistent placeholder
-    def update_steps_display():
+    # Helper function to update status message
+    def update_status(message: str):
+        st.session_state.agent_status = message
+        with status_placeholder.container():
+            st.info(f"⏳ {message}")
+    
+    # Helper function to render execution steps (only shown after completion)
+    def show_execution_steps():
         if st.session_state.agent_steps:
-            with steps_placeholder.container():
-                # Small helper text; expander is closed by default
-                st.caption("Collapse to see execution steps")
-                with st.expander("🔍 **Agent Execution Steps**", expanded=False):
-                    st.markdown("*Agent's reasoning and tool usage:*")
-                    st.markdown("")
+            with st.expander("🔍 **Agent Execution Steps**", expanded=False):
+                st.markdown("*Agent's reasoning and tool usage:*")
+                st.markdown("")
+                
+                for idx, step in enumerate(st.session_state.agent_steps, 1):
+                    step_type = step.get("type", "unknown")
                     
-                    for idx, step in enumerate(st.session_state.agent_steps, 1):
-                        step_type = step.get("type", "unknown")
+                    if step_type == "tool_call":
+                        tool_name = step.get("tool_name", "Unknown")
+                        tool_args = step.get("tool_args", {})
                         
-                        if step_type == "tool_call":
-                            tool_name = step.get("tool_name", "Unknown")
-                            tool_args = step.get("tool_args", {})
-                            
-                            st.markdown(f"**Step {idx}: Tool Call**")
-                            st.code(f"🔧 Tool: {tool_name}", language=None)
-                            
-                            if tool_args:
-                                st.markdown("*Arguments:*")
-                                st.json(tool_args)
+                        st.markdown(f"**Step {idx}: Tool Call**")
+                        st.code(f"🔧 Tool: {tool_name}", language=None)
                         
-                        elif step_type == "tool_result":
-                            result = step.get("result", "")
-                            result_str = str(result)
-                            
-                            st.markdown(f"**Step {idx}: Tool Result**")
-                            if len(result_str) > 5000:
-                                st.text(result_str[:5000] + "...")
-                            else:
-                                st.text(result_str)
+                        if tool_args:
+                            st.markdown("*Arguments:*")
+                            st.json(tool_args)
+                    
+                    elif step_type == "tool_result":
+                        result = step.get("result", "")
+                        result_str = str(result)
                         
-                        st.markdown("---")
+                        st.markdown(f"**Step {idx}: Tool Result**")
+                        if len(result_str) > 5000:
+                            st.text(result_str[:5000] + "...")
+                        else:
+                            st.text(result_str)
+                    
+                    st.markdown("---")
     
     # Create agent
     try:
+        update_status("Initializing agent...")
         agent = create_mlops_agent()
     except Exception as e:
         return f"❌ Error creating agent: {str(e)}"
@@ -213,8 +237,11 @@ def run_agent_with_streaming(query: str) -> str:
     # Stream the agent's execution
     step_count = 0
     final_response = None
+    current_tool_name = None
     
     try:
+        update_status("Thinking which tool to call...")
+        
         for event in agent.stream(inputs, stream_mode="values"):
             step_count += 1
             
@@ -229,16 +256,20 @@ def run_agent_with_streaming(query: str) -> str:
             if hasattr(last_message, 'tool_calls') and last_message.tool_calls:
                 # Tool call step
                 for tool_call in last_message.tool_calls:
+                    current_tool_name = tool_call['name']
                     add_agent_step({
                         "type": "tool_call",
                         "status": "complete",
-                        "tool_name": tool_call['name'],
+                        "tool_name": current_tool_name,
                         "tool_args": tool_call['args'],
                         "call_id": tool_call['id']
                     })
-                
-                # Update steps in persistent placeholder
-                update_steps_display()
+                    
+                    # Update status with tool name
+                    update_status(f"Tool decided - {current_tool_name}")
+                    time.sleep(1.0)  # Pause to make status visible
+                    update_status("ApertureDB query running...")
+                    time.sleep(1.0)
             
             # Check for content (response or tool result)
             if hasattr(last_message, 'content') and last_message.content:
@@ -258,16 +289,24 @@ def run_agent_with_streaming(query: str) -> str:
                     from .sidebar import update_sidebar_results
                     update_sidebar_results(content)
                     
-                    update_steps_display()
+                    # Update status
+                    update_status("Got results from ApertureDB - thinking...")
+                    time.sleep(0.2)  # Pause to make status visible
                 else:
                     # This is the final AI response - stream it
                     current_response = content
+                    status_placeholder.empty()  # Clear status
                     with response_placeholder.container():
                         with st.chat_message("assistant"):
                             st.markdown(current_response)
             
             # Store final response
             final_response = event
+        
+        # Clear status and show execution steps dropdown (collapsed)
+        status_placeholder.empty()
+        with status_placeholder.container():
+            show_execution_steps()
         
         # Extract final answer
         if final_response and "messages" in final_response:
@@ -284,7 +323,7 @@ def run_agent_with_streaming(query: str) -> str:
             "status": "error",
             "content": str(e)
         })
-        update_steps_display()
+        status_placeholder.empty()
         return error_msg
 
 

@@ -59,21 +59,20 @@ def main():
     # Render chat interface and get submitted query
     submitted_query = render_chat_interface()
     
-    # Process query if submitted
-    if submitted_query:
+    # Process query if submitted (stored in session state)
+    if st.session_state.get("pending_query"):
+        query = st.session_state.pending_query
+        st.session_state.pending_query = None
+        
         # Set processing flag
         set_state("is_processing", True)
         
         # Add user message to chat
-        add_message("user", submitted_query)
+        add_message("user", query)
         
-        # Display user message immediately
-        with st.chat_message("user"):
-            st.markdown(submitted_query)
-        
-        # Run agent with streaming
-        with st.spinner("🤖 Agent is thinking..."):
-            response = run_agent_with_streaming(submitted_query)
+        # Run agent with streaming (no duplicate display needed)
+        with st.spinner("🤖 Agent is working..."):
+            response = run_agent_with_streaming(query)
         
         # Add assistant response to chat
         add_message("assistant", response)

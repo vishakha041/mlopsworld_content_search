@@ -1,19 +1,5 @@
 """
-Session State Management for    # Toggle for showing/hiding agent steps
-    if "show_steps" not in st.session_state:
-        st.session_state.show_steps = True
-    
-    # Last tool results for sidebar display
-    if "last_tool_results" not in st.session_state:
-        st.session_state.last_tool_results = None
-    
-    # ApertureDB connection pool (for session-level persistence)
-    if "db_connector" not in st.session_state:
-        st.session_state.db_connector = None
-    
-    # Embedding model (for session-level persistence)
-    if "embedding_model" not in st.session_state:
-        st.session_state.embedding_model = NoneUI
+Session State Management for Streamlit UI
 
 This module handles all Streamlit session state initialization
 and access patterns.
@@ -40,13 +26,29 @@ def initialize_session_state():
     if "current_query" not in st.session_state:
         st.session_state.current_query = ""
     
+    # Pending query waiting to be processed
+    if "pending_query" not in st.session_state:
+        st.session_state.pending_query = None
+    
+    # Input field key counter (increment to reset input)
+    if "input_key_counter" not in st.session_state:
+        st.session_state.input_key_counter = 0
+    
     # Processing flag to prevent double submissions
     if "is_processing" not in st.session_state:
         st.session_state.is_processing = False
     
     # Toggle for showing agent steps panel
     if "show_steps" not in st.session_state:
-        st.session_state.show_steps = True
+        st.session_state.show_steps = False
+    
+    # Last tool results for sidebar display
+    if "last_tool_results" not in st.session_state:
+        st.session_state.last_tool_results = None
+    
+    # Dynamic status message for agent execution
+    if "agent_status" not in st.session_state:
+        st.session_state.agent_status = ""
     
     # ApertureDB connection pool (for session-level persistence)
     if "db_connector" not in st.session_state:
