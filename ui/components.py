@@ -291,7 +291,7 @@ def run_agent_with_streaming(query: str) -> str:
                     
                     # Update status
                     update_status("Got results from ApertureDB - thinking...")
-                    time.sleep(0.2)  # Pause to make status visible
+                    
                 else:
                     # This is the final AI response - stream it
                     current_response = content
