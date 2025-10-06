@@ -42,7 +42,7 @@ if not APERTUREDB_KEY:
     )
 
 # ===== AGENT CONFIGURATION =====
-MAX_ITERATIONS = 10  # Maximum number of agent reasoning steps
+MAX_ITERATIONS = 20  # Maximum number of agent reasoning steps
 ENABLE_VERBOSE_OUTPUT = True  # Enable detailed logging for debugging
 
 # ===== TOOL CONFIGURATION =====
