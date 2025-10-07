@@ -11,11 +11,7 @@ import os
 import numpy as np
 import tempfile
 import logging
-from dotenv import load_dotenv
 from twelvelabs import TwelveLabs
-
-# Load environment variables
-load_dotenv()
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -42,6 +38,18 @@ EMBEDDING_DIMENSIONS = 1024
 
 # ===== HELPER FUNCTIONS =====
 
+def get_secret(key: str) -> str:
+    """
+    Get secret from Streamlit secrets or environment variables.
+    Tries Streamlit secrets first (for deployment), then falls back to env vars (for local dev).
+    """
+    try:
+        return st.secrets.get(key, os.getenv(key, ""))
+    except (FileNotFoundError, KeyError):
+        # secrets.toml not found or key not present - use environment variables
+        return os.getenv(key, "")
+
+
 @st.cache_resource
 def get_twelvelabs_client():
     """
@@ -49,9 +57,9 @@ def get_twelvelabs_client():
     Cached to avoid recreating the client on every interaction.
     """
     try:
-        api_key = os.getenv('TL_API_KEY')
+        api_key = get_secret('TL_API_KEY')
         if not api_key:
-            st.error("TL_API_KEY not found in environment variables")
+            st.error("TL_API_KEY not found in secrets.toml or environment variables")
             return None
         
         tl = TwelveLabs(api_key=api_key)
