@@ -32,9 +32,15 @@ SET_TRANSCRIPT = "ds_transcript_chunks_v1"
 SET_META = "ds_talk_meta_v1" 
 SET_BIO = "ds_speaker_bio_v1"
 
+# Video descriptor set (Twelve Labs embeddings)
+VIDEO_DESCRIPTOR_SET = "marengo_2_7"
+VIDEO_EMBED_MODEL = "Marengo-retrieval-2.7"
+VIDEO_EMBED_DIM = 1024
+
 # Global variables for lazy initialization
 _embedding_model = None
 _db_connector = None
+_twelvelabs_client = None
 
 def get_embedding_model():
     """
@@ -191,3 +197,70 @@ def get_text_field_name(set_name: str) -> str:
         return "bio_text"
     else:
         return "chunk_text"
+
+
+def get_twelvelabs_client():
+    """
+    Lazy initialization of the Twelve Labs client for video embeddings.
+    
+    For Streamlit apps, this will use session state if available,
+    otherwise falls back to global variable.
+    
+    Returns:
+        TwelveLabs client instance or None if initialization fails
+    """
+    global _twelvelabs_client
+    
+    # Try to use Streamlit session state if available
+    try:
+        import streamlit as st
+        if hasattr(st, 'session_state'):
+            if "twelvelabs_client" not in st.session_state or st.session_state.twelvelabs_client is None:
+                st.session_state.twelvelabs_client = _create_twelvelabs_client()
+            return st.session_state.twelvelabs_client
+    except (ImportError, RuntimeError):
+        # Not in Streamlit context, use global variable
+        pass
+    
+    # Fallback to global variable for CLI usage
+    if _twelvelabs_client is None:
+        _twelvelabs_client = _create_twelvelabs_client()
+    return _twelvelabs_client
+
+
+def _create_twelvelabs_client():
+    """
+    Helper function to create a new Twelve Labs client.
+    
+    Returns:
+        TwelveLabs client instance or None if initialization fails
+    """
+    try:
+        from twelvelabs import TwelveLabs
+        
+        # Get API key from environment or Streamlit secrets
+        tl_api_key = None
+        
+        # Try Streamlit secrets first
+        try:
+            import streamlit as st
+            tl_api_key = st.secrets.get('TL_API_KEY', os.getenv('TL_API_KEY', ''))
+        except (ImportError, FileNotFoundError, RuntimeError):
+            # Not in Streamlit or secrets not found
+            tl_api_key = os.getenv('TL_API_KEY', '')
+        
+        if not tl_api_key:
+            print("⚠️ TL_API_KEY not found - video search will not be available")
+            return None
+        
+        print(f"🎥 Initializing Twelve Labs client (key length: {len(tl_api_key)} chars)...")
+        tl = TwelveLabs(api_key=tl_api_key)
+        print("✅ Twelve Labs client initialized!")
+        return tl
+        
+    except ImportError:
+        print("⚠️ Twelve Labs package not installed - video search will not be available")
+        return None
+    except Exception as e:
+        print(f"❌ Failed to initialize Twelve Labs client: {e}")
+        return None

@@ -23,6 +23,7 @@ from .get_talk_details import get_talk_details
 from .find_similar_content import find_similar_content
 from .analyze_topics_and_trends import analyze_topics_and_trends
 from .get_unique_values import get_unique_values
+from .search_videos_semantically import search_videos_semantically
 
 # Export all tools for easy importing
 __all__ = [
@@ -33,9 +34,11 @@ __all__ = [
     "find_similar_content",
     "analyze_topics_and_trends",
     "get_unique_values",
+    "search_videos_semantically",
     # Utility functions (from utils)
     "get_embedding_model",
     "get_db_connector",
+    "get_twelvelabs_client",
     "to_blob",
     "safe_get",
     "format_date_constraint",
@@ -47,7 +50,10 @@ __all__ = [
     "SET_META", 
     "SET_BIO",
     "EMBED_MODEL",
-    "EMBED_DIM"
+    "EMBED_DIM",
+    "VIDEO_DESCRIPTOR_SET",
+    "VIDEO_EMBED_MODEL",
+    "VIDEO_EMBED_DIM"
 ]
 
 

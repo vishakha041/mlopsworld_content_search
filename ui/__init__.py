@@ -16,6 +16,7 @@ from .components import (
 )
 from .styles import get_custom_css
 from .sidebar import render_results_sidebar
+from .video_search import render_video_search_tab
 
 __all__ = [
     "initialize_session_state",
@@ -29,5 +30,6 @@ __all__ = [
     "render_agent_steps_panel",
     "run_agent_with_streaming",
     "get_custom_css",
-    "render_results_sidebar"
+    "render_results_sidebar",
+    "render_video_search_tab"
 ]

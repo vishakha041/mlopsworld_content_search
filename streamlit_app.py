@@ -20,7 +20,8 @@ from ui import (
     render_agent_steps_panel,
     run_agent_with_streaming,
     get_custom_css,
-    render_results_sidebar
+    render_results_sidebar,
+    render_video_search_tab
 )
 from ui.state import add_message, set_state
 
@@ -52,39 +53,48 @@ def main():
     # Render sidebar with results (if any)
     render_results_sidebar()
     
-    # Render example queries
-    with st.expander("💡 **Example Queries**", expanded=False):
-        render_example_queries()
+    # Create tabs for different interfaces
+    tab1, tab2 = st.tabs(["💬 Chat with Agent", "🎥 Video Semantic Search"])
     
-    # Render chat interface and get submitted query
-    submitted_query = render_chat_interface()
+    # ===== TAB 1: CHAT WITH AGENT =====
+    with tab1:
+        # Render example queries
+        with st.expander("💡 **Example Queries**", expanded=False):
+            render_example_queries()
+        
+        # Render chat interface and get submitted query
+        submitted_query = render_chat_interface()
+        
+        # Process query if submitted (stored in session state)
+        if st.session_state.get("pending_query"):
+            query = st.session_state.pending_query
+            st.session_state.pending_query = None
+            
+            # Set processing flag
+            set_state("is_processing", True)
+            
+            # Add user message to chat
+            add_message("user", query)
+            
+            # Run agent with streaming (no duplicate display needed)
+            with st.spinner("🤖 Agent is working..."):
+                response = run_agent_with_streaming(query)
+            
+            # Add assistant response to chat
+            add_message("assistant", response)
+            
+            # Reset processing flag
+            set_state("is_processing", False)
+            
+            # Rerun to update UI
+            st.rerun()
+        
+        # Render agent steps panel (if any steps exist)
+        render_agent_steps_panel()
     
-    # Process query if submitted (stored in session state)
-    if st.session_state.get("pending_query"):
-        query = st.session_state.pending_query
-        st.session_state.pending_query = None
-        
-        # Set processing flag
-        set_state("is_processing", True)
-        
-        # Add user message to chat
-        add_message("user", query)
-        
-        # Run agent with streaming (no duplicate display needed)
-        with st.spinner("🤖 Agent is working..."):
-            response = run_agent_with_streaming(query)
-        
-        # Add assistant response to chat
-        add_message("assistant", response)
-        
-        # Reset processing flag
-        set_state("is_processing", False)
-        
-        # Rerun to update UI
-        st.rerun()
-    
-    # Render agent steps panel (if any steps exist)
-    render_agent_steps_panel()
+    # ===== TAB 2: VIDEO SEMANTIC SEARCH =====
+    with tab2:
+        render_video_search_tab()
     
     # Footer
     st.markdown("---")

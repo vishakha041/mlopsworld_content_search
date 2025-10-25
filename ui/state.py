@@ -57,6 +57,23 @@ def initialize_session_state():
     # Embedding model (for session-level persistence)
     if "embedding_model" not in st.session_state:
         st.session_state.embedding_model = None
+    
+    # Twelve Labs client (for session-level persistence)
+    if "twelvelabs_client" not in st.session_state:
+        st.session_state.twelvelabs_client = None
+    
+    # Video search specific state
+    if "video_search_query" not in st.session_state:
+        st.session_state.video_search_query = ""
+    
+    if "video_search_results" not in st.session_state:
+        st.session_state.video_search_results = None
+    
+    if "video_input_key_counter" not in st.session_state:
+        st.session_state.video_input_key_counter = 0
+    
+    if "pending_video_example_query" not in st.session_state:
+        st.session_state.pending_video_example_query = None
 
 
 def get_state(key: str, default=None):
