@@ -91,8 +91,8 @@ def main():
     st.markdown(
         """
         <div style="text-align: center; color: #888; font-size: 0.85rem;">
-            <p>Built with ❤️ using Streamlit, LangGraph, and ApertureDB</p>
-            <p>Dataset: 278 MLOps & GenAI conference talks</p>
+            <p>Built using Streamlit, LangGraph, and ApertureDB</p>
+            <p>Dataset: MLOps conference talks</p>
         </div>
         """,
         unsafe_allow_html=True
