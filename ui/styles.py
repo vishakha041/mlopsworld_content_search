@@ -18,7 +18,8 @@ def get_custom_css():
         /* Main container */
         .main-header {
             text-align: center;
-            padding: 1rem 0;
+            padding: 0;
+            margin: 0;
         }
         
         /* Example query buttons */

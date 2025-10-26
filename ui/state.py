@@ -74,6 +74,13 @@ def initialize_session_state():
     
     if "pending_video_example_query" not in st.session_state:
         st.session_state.pending_video_example_query = None
+    
+    # Expander states for auto-closing
+    if "chat_examples_expanded" not in st.session_state:
+        st.session_state.chat_examples_expanded = False
+    
+    if "video_examples_expanded" not in st.session_state:
+        st.session_state.video_examples_expanded = False
 
 
 def get_state(key: str, default=None):

@@ -15,14 +15,29 @@ logging.basicConfig(level=logging.INFO)
 
 
 # ===== EXAMPLE QUERIES =====
-VIDEO_SEARCH_EXAMPLES = [
-    "AI agents and LLMs in production",
-    "Vector databases and RAG systems",
-    "MLOps best practices and deployment",
-    "Model monitoring and evaluation",
-    "Data quality and feature engineering",
-    "Generative AI and prompt engineering"
-]
+VIDEO_SEARCH_EXAMPLES = {
+    "search_1": {
+        "label": "🔍 Content Search",
+        "queries": [
+            "AI agents and LLMs in production",
+            "Vector databases and RAG systems"
+        ]
+    },
+    "search_2": {
+        "label": "🎯 Topics",
+        "queries": [
+            "MLOps best practices and deployment",
+            "Model monitoring and evaluation"
+        ]
+    },
+    "search_3": {
+        "label": "🤖 Technologies",
+        "queries": [
+            "Data quality and feature engineering",
+            "Generative AI and prompt engineering"
+        ]
+    }
+}
 
 
 # ===== HELPER FUNCTIONS =====
@@ -80,7 +95,7 @@ def render_video_result_card(result: Dict[str, Any], index: int):
         index: Result index for display
     """
     st.markdown(f"### 🎯 Match #{index}: {result.get('talk_title', 'Untitled')}")
-    
+    st.markdown("---")
     # Create columns for metadata
     col1, col2, col3 = st.columns([2, 2, 1])
     
@@ -159,21 +174,9 @@ def render_video_search_tab():
     Twelve Labs embeddings, separate from the chat-based agent.
     """
     
-    # Header and description
+    # Header
     st.markdown("### 🎥 Video Semantic Search")
-    
-    st.info("""
-    **Search for conference talk videos using natural language queries.**
-    
-    This feature uses **Twelve Labs Marengo video embeddings** to understand video content 
-    and find semantically similar talks.
-    
-    **How it works:** Your query is converted to a 1024-dimensional embedding using the 
-    Marengo-retrieval-2.7 model, then matched against pre-computed video embeddings in 
-    ApertureDB via k-NN similarity search.
-    """)
-    
-    st.markdown("---")
+    st.caption("Uses Twelve Labs Marengo video embeddings to search video content")
     
     # Initialize session state for video search
     if "video_search_query" not in st.session_state:
@@ -185,57 +188,66 @@ def render_video_search_tab():
     if "pending_video_example_query" not in st.session_state:
         st.session_state.pending_video_example_query = None
     
-    # Example queries in an expander
-    with st.expander("💡 Example Queries", expanded=False):
-        st.markdown("**Try these example queries:**")
-        for example in VIDEO_SEARCH_EXAMPLES:
-            if st.button(example, key=f"video_example_{example}", use_container_width=True):
-                st.session_state.pending_video_example_query = example
-                st.rerun()
-    
-    # Search input section
-    st.markdown("#### Search Query")
-    
-    # Dynamic key for input field (same pattern as chat interface)
-    video_query_key = f"video_query_input_{st.session_state.video_input_key_counter}"
-    if video_query_key not in st.session_state:
-        st.session_state[video_query_key] = ""
-    
-    # Handle example query click - directly set the session state value
-    if st.session_state.pending_video_example_query:
-        st.session_state[video_query_key] = st.session_state.pending_video_example_query
-        st.session_state.pending_video_example_query = None
-    
-    search_query = st.text_input(
-        "Enter your search query:",
-        placeholder="e.g., 'AI agents with memory and context'",
-        key=video_query_key,
-        label_visibility="collapsed"
-    )
-    
-    # Number of results slider
-    col1, col2 = st.columns([3, 1])
+    # Create two columns: search controls on left, examples on right
+    col1, col2 = st.columns([2, 2])
     
     with col1:
-        top_n = st.slider(
-            "Number of results:",
-            min_value=1,
-            max_value=10,
-            value=3,
-            help="Select how many matching videos to display"
+        # Dynamic key for input field (same pattern as chat interface)
+        video_query_key = f"video_query_input_{st.session_state.video_input_key_counter}"
+        if video_query_key not in st.session_state:
+            st.session_state[video_query_key] = ""
+        
+        # Handle example query click - directly set the session state value
+        if st.session_state.pending_video_example_query:
+            st.session_state[video_query_key] = st.session_state.pending_video_example_query
+            st.session_state.pending_video_example_query = None
+        
+        search_query = st.text_input(
+            "Search Query:",
+            placeholder="e.g., 'AI agents with memory and context'",
+            key=video_query_key,
+            label_visibility="visible"
         )
+        
+        # Number of results slider and checkbox
+        slider_col, check_col = st.columns([3, 1])
+        
+        with slider_col:
+            top_n = st.slider(
+                "Number of results:",
+                min_value=1,
+                max_value=10,
+                value=3,
+                help="Select how many matching videos to display"
+            )
+        
+        with check_col:
+            include_videos = st.checkbox(
+                "Show videos",
+                value=True,
+                help="Include video players in results (disable for faster metadata-only search)"
+            )
+        
+        # Search button
+        search_clicked = st.button("🔍 Search Videos", type="primary", use_container_width=True)
     
     with col2:
-        include_videos = st.checkbox(
-            "Show videos",
-            value=True,
-            help="Include video players in results (disable for faster metadata-only search)"
-        )
-    
-    # Search button
-    search_clicked = st.button("🔍 Search Videos", type="primary", use_container_width=True)
-    
-    st.markdown("---")
+        # Example queries in dropdown
+        with st.expander("💡 Example Queries", expanded=False):
+            # Create columns for categories
+            cols = st.columns(len(VIDEO_SEARCH_EXAMPLES))
+            
+            for idx, (category_key, category_data) in enumerate(VIDEO_SEARCH_EXAMPLES.items()):
+                with cols[idx]:
+                    st.markdown(f"**{category_data['label']}**")
+                    for q_idx, query in enumerate(category_data['queries']):
+                        if st.button(
+                            query,
+                            key=f"video_example_{category_key}_{q_idx}",
+                            use_container_width=True
+                        ):
+                            st.session_state.pending_video_example_query = query
+                            st.rerun()
     
     # Perform search when button is clicked
     if search_clicked and search_query.strip():

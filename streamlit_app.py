@@ -58,10 +58,6 @@ def main():
     
     # ===== TAB 1: CHAT WITH AGENT =====
     with tab1:
-        # Render example queries
-        with st.expander("💡 **Example Queries**", expanded=False):
-            render_example_queries()
-        
         # Render chat interface and get submitted query
         submitted_query = render_chat_interface()
         

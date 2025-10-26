@@ -25,13 +25,7 @@ def render_header():
     st.markdown(
         """
         <div class="main-header">
-            <h1>🤖 MLOps Events Agent</h1>
-            <p style="color: #666; font-size: 1.1rem;">
-                Powered by LangGraph + ApertureDB + Gemini 2.5 Pro
-            </p>
-            <p style="color: #888; font-size: 0.95rem;">
-                Query 278 MLOps & GenAI conference talks with natural language
-            </p>
+            <h3 style="margin: 0; padding: 0; margin-bottom: 3px;">MLOps Events Agent</h3>
         </div>
         """,
         unsafe_allow_html=True
@@ -40,8 +34,6 @@ def render_header():
 
 def render_example_queries():
     """Render example query buttons organized by category."""
-    st.markdown("### 💡 Example Queries")
-    st.markdown("Click any example to try it out:")
     
     # Create columns for categories
     cols = st.columns(len(EXAMPLE_QUERIES))
@@ -55,7 +47,7 @@ def render_example_queries():
                     key=f"example_{category_key}_{q_idx}",
                     use_container_width=True
                 ):
-                    # Set the query in session state (don't increment counter to preserve input)
+                    # Set the query in session state
                     st.session_state.pending_example_query = query
                     st.rerun()
 
@@ -67,6 +59,10 @@ def render_chat_interface():
     Returns:
         str or None: The submitted query, if any
     """
+    # Header
+    st.markdown("### 💬 Chat with Agent")
+    st.caption("Ask questions about MLOps talks using natural language")
+    
     # Initialize the query value in session state if not exists
     query_key = f"query_input_{st.session_state.input_key_counter}"
     if query_key not in st.session_state:
@@ -77,27 +73,31 @@ def render_chat_interface():
         st.session_state[query_key] = st.session_state.pending_example_query
         st.session_state.pending_example_query = None
     
-    # Input area
-    st.markdown("---")
-    
-    col1, col2 = st.columns([5, 1])
+    # Create two columns: input on left, examples on right
+    col1, col2 = st.columns([2, 2])
     
     with col1:
-        query = st.text_area(
-            "Ask a question:",
+        # Input area
+        query = st.text_input(
+            "Search Query:",
             placeholder="e.g., Show me talks about deployment strategies...",
-            height=100,
             key=query_key,
-            label_visibility="collapsed"
+            label_visibility="visible",
+            max_chars=500
         )
-    
-    with col2:
+        
+        # Buttons below input (stacked: Submit on top, Clear below)
         submit = st.button("🚀 Submit", type="primary", use_container_width=True)
-        if st.button("🗑️ Clear", use_container_width=True):
+        if st.button("Clear", use_container_width=True, key=f"clear_{query_key}"):
             clear_chat_history()
             st.session_state.current_query = ""
             st.session_state.input_key_counter += 1
             st.rerun()
+    
+    with col2:
+        # Example queries in dropdown
+        with st.expander("💡 Example Queries", expanded=False):
+            render_example_queries()
     
     # Display chat messages
     st.markdown("---")
