@@ -212,16 +212,34 @@ def get_final_answer(response: Dict[str, Any]) -> str:
     """
     Extract the final answer from the agent's response.
     
+    Handles both legacy (plain string) and new (content blocks) content formats.
+    
     Args:
         response: The full agent response dictionary
         
     Returns:
         str: The final answer text
     """
+    def extract_text(content):
+        """Extract plain text from content (string or content blocks)."""
+        if content is None:
+            return ""
+        if isinstance(content, str):
+            return content
+        if isinstance(content, list):
+            text_parts = []
+            for block in content:
+                if isinstance(block, dict) and block.get('type') == 'text' and 'text' in block:
+                    text_parts.append(block['text'])
+                elif isinstance(block, str):
+                    text_parts.append(block)
+            return '\n'.join(text_parts) if text_parts else str(content)
+        return str(content)
+    
     if response and "messages" in response:
         last_message = response["messages"][-1]
         if hasattr(last_message, 'content'):
-            return last_message.content
+            return extract_text(last_message.content)
     return "No response generated."
 
 

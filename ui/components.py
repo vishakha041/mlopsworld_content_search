@@ -20,6 +20,67 @@ from .state import (
 from .examples import EXAMPLE_QUERIES
 
 
+def extract_text_content(content):
+    """
+    Extract plain text from LangChain message content.
+    
+    Handles both legacy (plain string) and new (content blocks) formats.
+    This ensures compatibility across different LangChain versions.
+    
+    Args:
+        content: Message content (can be str, list of dicts, or other)
+        
+    Returns:
+        str: Plain text content
+    """
+    # Handle None
+    if content is None:
+        return ""
+    
+    # Handle plain string (legacy format)
+    if isinstance(content, str):
+        return content
+    
+    # Handle content blocks (new LangChain 1.0+ format)
+    if isinstance(content, list):
+        text_parts = []
+        for block in content:
+            if isinstance(block, dict):
+                # Extract text from text blocks
+                if block.get('type') == 'text' and 'text' in block:
+                    text_parts.append(block['text'])
+                # Handle other block types if needed
+            elif isinstance(block, str):
+                text_parts.append(block)
+        return '\n'.join(text_parts) if text_parts else str(content)
+    
+    # Fallback: convert to string
+    return str(content)
+
+
+def safe_markdown(text: str):
+    """
+    Safely render markdown text to handle encoding issues across Streamlit versions.
+    
+    This function ensures consistent rendering between local and deployed environments
+    by handling potential encoding and escaping issues.
+    
+    Args:
+        text: The text to render
+    """
+    # Extract plain text if it's structured content
+    text = extract_text_content(text)
+    
+    # Ensure the text is properly decoded and cleaned
+    if isinstance(text, bytes):
+        text = text.decode('utf-8', errors='replace')
+    elif not isinstance(text, str):
+        text = str(text)
+    
+    # Render with markdown (Streamlit handles the rest)
+    st.markdown(text, unsafe_allow_html=False)
+
+
 def render_header():
     """Render the app header and description."""
     st.markdown(
@@ -108,7 +169,7 @@ def render_chat_interface():
     else:
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
-                st.markdown(message["content"])
+                safe_markdown(message["content"])
     
     # Handle submit
     if submit and query.strip() and not st.session_state.is_processing:
@@ -298,7 +359,7 @@ def run_agent_with_streaming(query: str) -> str:
                     status_placeholder.empty()  # Clear status
                     with response_placeholder.container():
                         with st.chat_message("assistant"):
-                            st.markdown(current_response)
+                            safe_markdown(current_response)
             
             # Store final response
             final_response = event
@@ -312,7 +373,7 @@ def run_agent_with_streaming(query: str) -> str:
         if final_response and "messages" in final_response:
             last_msg = final_response["messages"][-1]
             if hasattr(last_msg, 'content'):
-                return last_msg.content
+                return extract_text_content(last_msg.content)
         
         return "No response generated."
     
