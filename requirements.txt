@@ -1,0 +1,10 @@
+pydantic
+langchain-core
+numpy
+aperturedb
+sentence-transformers
+langgraph
+langchain
+langchain-google-genai
+streamlit>=1.40.0
+twelvelabs
