@@ -2,9 +2,9 @@
 
 > **An AI-powered semantic search and analysis platform for MLOps conference talks, built with ApertureDB, LangGraph, and Gemini 2.5 Pro**
 
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Streamlit-FF4B4B?style=for-the-badge)](https://mlops-events-agent.streamlit.app)
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Streamlit-FF4B4B?style=for-the-badge)](https://adb-query-agent.streamlit.app/)
 [![Built with](https://img.shields.io/badge/Built_with-ApertureDB-00A8E8?style=for-the-badge)](https://www.aperturedata.io/)
-[![Framework](https://img.shields.io/badge/Framework-LangGraph-green?style=for-the-badge)](https://www.langchain.com/langgraph)
+[![Framework](https://img.shields.io/badge/Framework-LangChain-green?style=for-the-badge)](https://www.langchain.com/langgraph)
 
 ---
 
