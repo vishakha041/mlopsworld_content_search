@@ -17,7 +17,7 @@ from langgraph.prebuilt import create_react_agent
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 # Import all tools from the tools module
-from tools.tools import (
+from app.tools.tools import (
     search_talks_by_filters,
     search_talks_semantically,
     analyze_speaker_activity,
@@ -28,10 +28,10 @@ from tools.tools import (
 )
 
 # Import system prompt
-from agent.prompt import get_system_prompt
+from app.agent.prompt import get_system_prompt
 
 # Import configuration
-from agent.config import (
+from app.agent.config import (
     MODEL_NAME,
     MODEL_TEMPERATURE,
     MAX_ITERATIONS,

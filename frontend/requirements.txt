@@ -1,0 +1,8 @@
+# Streamlit
+streamlit>=1.40.0
+
+# HTTP Client
+requests>=2.31.0
+
+# Environment Management
+python-dotenv>=1.0.0

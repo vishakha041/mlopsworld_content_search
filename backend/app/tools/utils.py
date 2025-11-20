@@ -42,68 +42,50 @@ _embedding_model = None
 _db_connector = None
 _twelvelabs_client = None
 
+def create_embedding_model():
+    """
+    Create and return a new embedding model instance.
+
+    Used by FastAPI for resource initialization.
+    """
+    print(f"🧠 Loading embedding model: {EMBED_MODEL}...")
+    model = SentenceTransformer(EMBED_MODEL)
+    model.max_seq_length = 512
+    print("✅ Embedding model loaded!")
+    return model
+
 def get_embedding_model():
     """
     Lazy initialization of the embedding model.
-    
-    For Streamlit apps, this will use session state if available,
-    otherwise falls back to global variable.
+
+    This function is kept for backward compatibility with tools.
+    In FastAPI, use dependency injection instead.
     """
     global _embedding_model
-    
-    # Try to use Streamlit session state if available
-    try:
-        import streamlit as st
-        if hasattr(st, 'session_state'):
-            if "embedding_model" not in st.session_state or st.session_state.embedding_model is None:
-                st.session_state.embedding_model = SentenceTransformer(EMBED_MODEL)
-                st.session_state.embedding_model.max_seq_length = 512
-            return st.session_state.embedding_model
-    except (ImportError, RuntimeError):
-        # Not in Streamlit context, use global variable
-        pass
-    
-    # Fallback to global variable for CLI usage
+
     if _embedding_model is None:
-        _embedding_model = SentenceTransformer(EMBED_MODEL)
-        _embedding_model.max_seq_length = 512
+        _embedding_model = create_embedding_model()
     return _embedding_model
+
+def create_db_connector():
+    """
+    Create and return a new ApertureDB connector.
+
+    Used by FastAPI for resource initialization.
+    """
+    return _create_connection()
 
 def get_db_connector():
     """
-    Lazy initialization of the ApertureDB connector with retry logic.
-    
-    For Streamlit apps, this uses session state to maintain a persistent
-    connection throughout the session. For CLI usage, it uses a global variable.
-    
-    Includes automatic retry on connection failure.
+    Lazy initialization of the ApertureDB connector.
+
+    This function is kept for backward compatibility with tools.
+    In FastAPI, use dependency injection instead.
     """
     global _db_connector
-    
-    # Try to use Streamlit session state if available
-    try:
-        import streamlit as st
-        if hasattr(st, 'session_state'):
-            # Check if we have a valid connection in session state
-            if "db_connector" not in st.session_state or st.session_state.db_connector is None:
-                st.session_state.db_connector = _create_connection()
-            
-            # Test connection and retry if needed
-            try:
-                # Quick connection test (you can adjust this based on ApertureDB's API)
-                _ = st.session_state.db_connector
-                return st.session_state.db_connector
-            except Exception as e:
-                print(f"⚠️ Connection test failed, retrying: {e}")
-                st.session_state.db_connector = _create_connection()
-                return st.session_state.db_connector
-    except (ImportError, RuntimeError):
-        # Not in Streamlit context, use global variable
-        pass
-    
-    # Fallback to global variable for CLI usage
+
     if _db_connector is None:
-        _db_connector = _create_connection()
+        _db_connector = create_db_connector()
     return _db_connector
 
 def _create_connection():
@@ -199,68 +181,48 @@ def get_text_field_name(set_name: str) -> str:
         return "chunk_text"
 
 
-def get_twelvelabs_client():
+def create_twelvelabs_client():
     """
-    Lazy initialization of the Twelve Labs client for video embeddings.
-    
-    For Streamlit apps, this will use session state if available,
-    otherwise falls back to global variable.
-    
-    Returns:
-        TwelveLabs client instance or None if initialization fails
-    """
-    global _twelvelabs_client
-    
-    # Try to use Streamlit session state if available
-    try:
-        import streamlit as st
-        if hasattr(st, 'session_state'):
-            if "twelvelabs_client" not in st.session_state or st.session_state.twelvelabs_client is None:
-                st.session_state.twelvelabs_client = _create_twelvelabs_client()
-            return st.session_state.twelvelabs_client
-    except (ImportError, RuntimeError):
-        # Not in Streamlit context, use global variable
-        pass
-    
-    # Fallback to global variable for CLI usage
-    if _twelvelabs_client is None:
-        _twelvelabs_client = _create_twelvelabs_client()
-    return _twelvelabs_client
+    Create and return a new Twelve Labs client.
 
+    Used by FastAPI for resource initialization.
 
-def _create_twelvelabs_client():
-    """
-    Helper function to create a new Twelve Labs client.
-    
     Returns:
         TwelveLabs client instance or None if initialization fails
     """
     try:
         from twelvelabs import TwelveLabs
-        
-        # Get API key from environment or Streamlit secrets
-        tl_api_key = None
-        
-        # Try Streamlit secrets first
-        try:
-            import streamlit as st
-            tl_api_key = st.secrets.get('TL_API_KEY', os.getenv('TL_API_KEY', ''))
-        except (ImportError, FileNotFoundError, RuntimeError):
-            # Not in Streamlit or secrets not found
-            tl_api_key = os.getenv('TL_API_KEY', '')
-        
+
+        tl_api_key = os.getenv('TL_API_KEY', '')
+
         if not tl_api_key:
             print("⚠️ TL_API_KEY not found - video search will not be available")
             return None
-        
+
         print(f"🎥 Initializing Twelve Labs client (key length: {len(tl_api_key)} chars)...")
         tl = TwelveLabs(api_key=tl_api_key)
         print("✅ Twelve Labs client initialized!")
         return tl
-        
+
     except ImportError:
         print("⚠️ Twelve Labs package not installed - video search will not be available")
         return None
     except Exception as e:
         print(f"❌ Failed to initialize Twelve Labs client: {e}")
         return None
+
+def get_twelvelabs_client():
+    """
+    Lazy initialization of the Twelve Labs client for video embeddings.
+
+    This function is kept for backward compatibility with tools.
+    In FastAPI, use dependency injection instead.
+
+    Returns:
+        TwelveLabs client instance or None if initialization fails
+    """
+    global _twelvelabs_client
+
+    if _twelvelabs_client is None:
+        _twelvelabs_client = create_twelvelabs_client()
+    return _twelvelabs_client

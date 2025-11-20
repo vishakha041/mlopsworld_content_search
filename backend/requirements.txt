@@ -1,0 +1,28 @@
+# FastAPI and Server
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+
+# Pydantic Settings
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# LangChain and Agent
+langchain-core
+langchain
+langchain-google-genai
+langgraph
+
+# Database and Embeddings
+aperturedb==0.4.53
+sentence-transformers
+numpy
+
+# Video Processing
+twelvelabs
+
+# Rate Limiting (optional)
+slowapi>=0.1.9
+
+# Environment Management
+python-dotenv>=1.0.0
