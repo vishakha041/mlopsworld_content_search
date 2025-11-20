@@ -1,0 +1,15 @@
+# Testing Dependencies for MLOps Events API
+
+# Core Testing Framework
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+
+# HTTP Testing
+httpx>=0.24.0
+
+# Mocking
+pytest-mock>=3.11.0
+
+# Test Reporting
+pytest-html>=3.2.0

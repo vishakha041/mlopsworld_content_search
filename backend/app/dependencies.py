@@ -20,6 +20,13 @@ async def initialize_resources(app: FastAPI):
 
     Resources are stored in app.state and accessed via dependency injection.
     """
+    # Check if already initialized (for tests with pre-loaded fixtures)
+    if (hasattr(app.state, 'db_connector') and app.state.db_connector is not None and
+        hasattr(app.state, 'embedding_model') and app.state.embedding_model is not None and
+        hasattr(app.state, 'agent') and app.state.agent is not None):
+        print("   Resources already initialized")
+        return
+
     # Import here to avoid circular imports and ensure modules are available
     from app.tools.utils import (
         create_db_connector,
@@ -29,26 +36,26 @@ async def initialize_resources(app: FastAPI):
     from app.agent.agent import create_mlops_agent
 
     # Initialize database connector
-    print("   📊 Initializing database connector...")
+    print("   Initializing database connector...")
     app.state.db_connector = create_db_connector()
 
     # Initialize embedding model
-    print("   🧠 Loading embedding model...")
+    print("   Loading embedding model...")
     app.state.embedding_model = create_embedding_model()
 
     # Initialize Twelve Labs client (optional)
     if settings.TL_API_KEY:
-        print("   🎥 Initializing Twelve Labs client...")
+        print("   Initializing Twelve Labs client...")
         app.state.twelvelabs_client = create_twelvelabs_client()
     else:
-        print("   ⚠️  Twelve Labs API key not found - video search will be unavailable")
+        print("   Twelve Labs API key not found - video search will be unavailable")
         app.state.twelvelabs_client = None
 
     # Initialize agent
-    print("   🤖 Creating LangGraph agent...")
+    print("   Creating LangGraph agent...")
     app.state.agent = create_mlops_agent()
 
-    print("   ✅ All resources initialized")
+    print("   All resources initialized")
 
 
 async def cleanup_resources(app: FastAPI):
@@ -57,7 +64,7 @@ async def cleanup_resources(app: FastAPI):
     """
     # Database cleanup
     if hasattr(app.state, "db_connector") and app.state.db_connector:
-        print("   📊 Closing database connection...")
+        print("   Closing database connection...")
         # Add any necessary cleanup for ApertureDB connector if needed
         app.state.db_connector = None
 
