@@ -57,6 +57,13 @@ class AgentQueryResponse(BaseModel):
     metadata: Dict[str, Any] = Field(default={}, description="Additional metadata")
 
 
+class StreamEvent(BaseModel):
+    """Event emitted during streaming agent query"""
+    event_type: str = Field(description="Event type: 'step', 'answer', or 'error'")
+    data: Any = Field(description="Event payload")
+    timestamp: str = Field(description="Event timestamp")
+
+
 # ===== Talk Models =====
 
 class TalkSummary(BaseModel):

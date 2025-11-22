@@ -27,7 +27,8 @@ tests/
 │   ├── test_semantic_search_integration.py
 │   ├── test_speakers_integration.py
 │   ├── test_trends_integration.py
-│   └── test_agent_integration.py
+│   ├── test_agent_integration.py
+│   └── test_streaming_integration.py
 └── conftest.py                    # Shared configuration
 ```
 
@@ -74,6 +75,9 @@ pytest tests/integration/test_semantic_search_integration.py
 
 # Run specific test
 pytest tests/integration/test_semantic_search_integration.py::test_semantic_search_all_types
+
+# Run streaming tests only
+pytest tests/integration/test_streaming_integration.py -v
 
 # Stop at first failure
 pytest -x
@@ -306,6 +310,7 @@ pytest tests/integration -m "not slow"
 - `test_speakers_integration.py` - Speaker analysis with real DB
 - `test_trends_integration.py` - Trend analysis with real DB
 - `test_agent_integration.py` - Agent with real tools and DB
+- `test_streaming_integration.py` - Streaming agent queries with SSE
 
 ### Test Coverage Goals
 
