@@ -120,7 +120,7 @@ async def stream_agent_query(
             step_count = 0
             final_response = None
 
-            for event in agent_instance.stream(inputs, stream_mode="values"):
+            async for event in agent_instance.astream(inputs, stream_mode="values"):
                 step_count += 1
                 messages = event.get("messages", [])
 
