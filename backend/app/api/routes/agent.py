@@ -149,9 +149,7 @@ async def stream_agent_query(
                 # Extract content if present
                 if hasattr(last_message, 'content') and last_message.content:
                     content = str(last_message.content)
-                    # Truncate long content for streaming
-                    if len(content) > 500:
-                        content = content[:500] + "..."
+                    # No truncation for frontend to receive full data
                     step_data["content"] = content
 
                 # Emit step event
