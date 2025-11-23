@@ -169,8 +169,8 @@ export default function VideoSearchPage() {
               <div>
                 <div className="text-zinc-500 mb-1">Duration</div>
                 <div className="text-zinc-300 font-mono">
-                  {video.metadata?.duration_seconds 
-                    ? `${Math.floor(video.metadata.duration_seconds / 60)}m ${Math.round(video.metadata.duration_seconds % 60)}s`
+                  {video.metadata?.duration_sec 
+                    ? `${Math.floor(video.metadata.duration_sec / 60)}m ${Math.round(video.metadata.duration_sec % 60)}s`
                     : 'N/A'}
                 </div>
               </div>

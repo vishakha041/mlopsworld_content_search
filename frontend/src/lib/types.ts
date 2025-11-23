@@ -46,7 +46,7 @@ export interface VideoSearchRequest {
 
 export interface VideoMetadata {
   fps?: number;
-  duration_seconds?: number;
+  duration_sec?: number;
   frame_height?: number;
   frame_width?: number;
   resolution?: string;
@@ -57,6 +57,7 @@ export interface VideoSearchResult {
   speaker_name: string;
   company_name?: string;
   category_primary?: string;
+  event_name?: string;
   youtube_url?: string;
   youtube_id?: string;
   yt_views?: number;

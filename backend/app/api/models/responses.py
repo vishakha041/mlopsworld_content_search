@@ -281,6 +281,8 @@ class VideoMetadata(BaseModel):
     fps: Optional[float] = None
     duration_sec: Optional[int] = None
     resolution: Optional[str] = None
+    frame_height: Optional[int] = None
+    frame_width: Optional[int] = None
 
 
 class VideoSearchResult(BaseModel):
@@ -289,6 +291,7 @@ class VideoSearchResult(BaseModel):
     speaker_name: str
     company_name: Optional[str] = None
     category_primary: Optional[str] = None
+    event_name: Optional[str] = None
     youtube_url: Optional[str] = None
     youtube_id: Optional[str] = None
     yt_views: Optional[int] = None
