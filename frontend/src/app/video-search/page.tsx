@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, SlidersHorizontal, Play, Clock, Eye, User, Loader2 } from 'lucide-react';
+import { Search, SlidersHorizontal, Play, Clock, Eye, User, Loader2, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { searchVideos } from '@/lib/api';
+import { searchVideos, API_BASE_URL } from '@/lib/api';
 import { VideoSearchResult } from '@/lib/types';
 
 export default function VideoSearchPage() {
@@ -99,10 +99,6 @@ export default function VideoSearchPage() {
                         className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
                       />
                     </div>
-                    <div className="flex-1">
-                      {/* Placeholder for future filters */}
-                      <p className="text-xs text-zinc-600">More filters coming soon...</p>
-                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -121,65 +117,86 @@ export default function VideoSearchPage() {
       {/* Results Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {results.map((video, idx) => (
-          <motion.a
+          <motion.div
             key={idx}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.05 }}
-            href={video.youtube_url || '#'}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group bg-zinc-900/50 border border-white/5 hover:border-blue-500/30 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10"
+            className="bg-zinc-900/50 border border-white/5 rounded-2xl overflow-hidden hover:border-blue-500/30 transition-colors flex flex-col"
           >
-            {/* Thumbnail Placeholder / Video Preview */}
-            <div className="aspect-video bg-zinc-800 relative overflow-hidden">
-              {/* We could use youtube thumbnail if available, for now a gradient placeholder */}
-              <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-900 group-hover:scale-105 transition-transform duration-500" />
-              
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px]">
-                <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
-                  <Play className="w-5 h-5 text-white fill-white" />
-                </div>
+            {/* Header Info */}
+            <div className="p-5 border-b border-white/5">
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <h3 className="font-medium text-lg text-white line-clamp-2">
+                  {video.talk_title}
+                </h3>
+                {video.youtube_url && (
+                  <a 
+                    href={video.youtube_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-zinc-500 hover:text-blue-400 transition-colors flex-shrink-0"
+                  >
+                    <ExternalLink className="w-5 h-5" />
+                  </a>
+                )}
               </div>
 
-              {/* Similarity Badge */}
-              <div className="absolute top-3 right-3 px-2 py-1 bg-black/60 backdrop-blur-md rounded-lg border border-white/10 text-xs font-medium text-blue-300">
-                {Math.round(video.similarity_score * 100)}% Match
-              </div>
-
-              {/* Duration Badge */}
-              {video.metadata?.duration_sec && (
-                <div className="absolute bottom-3 right-3 px-2 py-1 bg-black/60 backdrop-blur-md rounded-lg border border-white/10 text-xs text-white flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {Math.floor(video.metadata.duration_sec / 60)}:{(video.metadata.duration_sec % 60).toString().padStart(2, '0')}
+              <div className="grid grid-cols-2 gap-y-4 text-sm">
+                <div>
+                  <div className="text-zinc-500 text-xs mb-1">Speaker</div>
+                  <div className="text-zinc-200 font-medium">{video.speaker_name}</div>
                 </div>
-              )}
-            </div>
-
-            {/* Content */}
-            <div className="p-5">
-              <h3 className="font-medium text-lg text-white mb-2 line-clamp-2 group-hover:text-blue-300 transition-colors">
-                {video.talk_title}
-              </h3>
-              
-              <div className="flex items-center gap-2 text-sm text-zinc-400 mb-4">
-                <User className="w-4 h-4" />
-                <span>{video.speaker_name}</span>
-              </div>
-
-              <div className="flex items-center justify-between text-xs text-zinc-500 pt-4 border-t border-white/5">
-                <div className="flex items-center gap-1.5">
-                  <Eye className="w-3 h-3" />
-                  <span>{video.yt_views?.toLocaleString() || 0} views</span>
+                <div>
+                  <div className="text-zinc-500 text-xs mb-1">Similarity</div>
+                  <div className="text-green-400 font-medium">{Math.round(video.similarity_score * 100)}%</div>
                 </div>
-                {video.category_primary && (
-                  <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/5">
-                    {video.category_primary}
-                  </span>
+                {video.distance !== undefined && (
+                  <div>
+                    <div className="text-zinc-500 text-xs mb-1">Distance</div>
+                    <div className="text-zinc-400 font-mono">{video.distance.toFixed(4)}</div>
+                  </div>
                 )}
               </div>
             </div>
-          </motion.a>
+
+            {/* Metadata Grid */}
+            <div className="grid grid-cols-4 gap-2 p-4 bg-black/20 text-xs border-b border-white/5">
+              <div>
+                <div className="text-zinc-500 mb-1">FPS</div>
+                <div className="text-zinc-300 font-mono">{video.metadata?.fps || 'N/A'}</div>
+              </div>
+              <div>
+                <div className="text-zinc-500 mb-1">Duration</div>
+                <div className="text-zinc-300 font-mono">
+                  {video.metadata?.duration_seconds 
+                    ? `${Math.floor(video.metadata.duration_seconds / 60)}m ${Math.round(video.metadata.duration_seconds % 60)}s`
+                    : 'N/A'}
+                </div>
+              </div>
+              <div>
+                <div className="text-zinc-500 mb-1">Height</div>
+                <div className="text-zinc-300 font-mono">{video.metadata?.frame_height ? `${video.metadata.frame_height}p` : 'N/A'}</div>
+              </div>
+              <div>
+                <div className="text-zinc-500 mb-1">Width</div>
+                <div className="text-zinc-300 font-mono">{video.metadata?.frame_width ? `${video.metadata.frame_width}px` : 'N/A'}</div>
+              </div>
+            </div>
+
+            {/* Video Player */}
+            <div className="aspect-video bg-black relative mt-auto">
+               <video 
+                 controls
+                 className="w-full h-full"
+                 poster={video.youtube_url ? getYouTubeThumbnail(video.youtube_url) : undefined}
+                 preload="metadata"
+                 src={`${API_BASE_URL}/videos/stream?talk_title=${encodeURIComponent(video.talk_title)}`}
+               >
+                 Your browser does not support the video tag.
+               </video>
+            </div>
+          </motion.div>
         ))}
       </div>
 
@@ -191,4 +208,13 @@ export default function VideoSearchPage() {
       )}
     </div>
   );
+}
+
+function getYouTubeThumbnail(url: string): string | undefined {
+  if (!url) return undefined;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11)
+    ? `https://img.youtube.com/vi/${match[2]}/mqdefault.jpg`
+    : undefined;
 }

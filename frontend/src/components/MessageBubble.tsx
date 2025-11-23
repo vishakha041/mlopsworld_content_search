@@ -69,7 +69,7 @@ export function MessageBubble({ role, content, steps = [], isStreaming = false }
               ) : (
                 <div className="flex items-center gap-2 text-zinc-400 text-sm">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Processing request...</span>
+                  <span>Thinking...</span>
                 </div>
               )}
 

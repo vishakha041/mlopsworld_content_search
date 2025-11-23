@@ -46,7 +46,9 @@ export interface VideoSearchRequest {
 
 export interface VideoMetadata {
   fps?: number;
-  duration_sec?: number;
+  duration_seconds?: number;
+  frame_height?: number;
+  frame_width?: number;
   resolution?: string;
 }
 

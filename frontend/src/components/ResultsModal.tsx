@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ExternalLink, Play, Calendar, Eye, User } from 'lucide-react';
+import { X, ExternalLink, Play, Calendar, Eye, User, Tag, Presentation } from 'lucide-react';
 import { StreamEvent } from '@/lib/types';
 
 interface ResultsModalProps {
@@ -16,6 +16,7 @@ interface TalkResult {
   published_date?: string;
   similarity_score?: number;
   category?: string;
+  event_name?: string;
 }
 
 export function ResultsModal({ isOpen, onClose, steps }: ResultsModalProps) {
@@ -63,10 +64,27 @@ export function ResultsModal({ isOpen, onClose, steps }: ResultsModalProps) {
               <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 {results.map((item, idx) => {
                   const hasLink = !!item.youtube_url;
+                  const thumbnailUrl = item.youtube_url ? getYouTubeThumbnail(item.youtube_url) : null;
                   const cardClassName = "group relative flex flex-col bg-white/5 hover:bg-white/10 border border-white/5 hover:border-purple-500/30 rounded-xl p-4 transition-all duration-200";
                   
                   const cardContent = (
                     <>
+                      {thumbnailUrl && (
+                        <div className="relative w-full aspect-video mb-4 rounded-lg overflow-hidden bg-zinc-800">
+                          <img 
+                            src={thumbnailUrl} 
+                            alt={item.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div className="w-10 h-10 rounded-full bg-purple-500/90 flex items-center justify-center backdrop-blur-sm shadow-lg transform scale-75 group-hover:scale-100 transition-transform">
+                              <Play className="w-4 h-4 text-white fill-current ml-0.5" />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="flex items-start justify-between gap-4 mb-3">
                         <h3 className="font-medium text-zinc-100 line-clamp-2 group-hover:text-purple-300 transition-colors">
                           {item.title || 'Untitled Talk'}
@@ -81,6 +99,23 @@ export function ResultsModal({ isOpen, onClose, steps }: ResultsModalProps) {
                           <User className="w-4 h-4 text-zinc-500" />
                           <span>{item.speaker || 'Unknown Speaker'}</span>
                         </div>
+
+                        {(item.event_name || item.category) && (
+                          <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-400">
+                            {item.event_name && (
+                              <div className="flex items-center gap-1.5">
+                                <Presentation className="w-3 h-3" />
+                                <span>{item.event_name}</span>
+                              </div>
+                            )}
+                            {item.category && (
+                              <div className="flex items-center gap-1.5">
+                                <Tag className="w-3 h-3" />
+                                <span>{item.category}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
 
                         <div className="flex items-center gap-4 text-xs text-zinc-500">
                           {item.views !== undefined && item.views !== null && (
@@ -187,7 +222,8 @@ function extractResults(steps: StreamEvent[]): TalkResult[] | null {
                 views: result.views || result.yt_views,
                 published_date: formattedDate,
                 similarity_score: result.similarity_score,
-                category: result.category || result.category_primary
+                category: result.category || result.category_primary,
+                event_name: result.event || result.event_name
               };
             });
             
@@ -203,7 +239,8 @@ function extractResults(steps: StreamEvent[]): TalkResult[] | null {
               views: result.views || result.yt_views,
               published_date: result.published_date || result.yt_published_at,
               similarity_score: result.similarity_score,
-              category: result.category || result.category_primary
+              category: result.category || result.category_primary,
+              event_name: result.event || result.event_name
             }));
           }
 
@@ -215,7 +252,8 @@ function extractResults(steps: StreamEvent[]): TalkResult[] | null {
               views: parsed.talk_info.views || parsed.talk_info.yt_views,
               published_date: parsed.talk_info.published_date || parsed.talk_info.yt_published_at,
               similarity_score: parsed.talk_info.similarity_score,
-              category: parsed.talk_info.category || parsed.talk_info.category_primary
+              category: parsed.talk_info.category || parsed.talk_info.category_primary,
+              event_name: parsed.talk_info.event || parsed.talk_info.event_name
             }];
           }
         }
@@ -227,4 +265,13 @@ function extractResults(steps: StreamEvent[]): TalkResult[] | null {
     }
   }
   return null;
+}
+
+function getYouTubeThumbnail(url: string): string | null {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11)
+    ? `https://img.youtube.com/vi/${match[2]}/mqdefault.jpg`
+    : null;
 }

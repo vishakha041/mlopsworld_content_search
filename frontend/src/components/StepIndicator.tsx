@@ -15,21 +15,6 @@ export function StepIndicator({ steps, isComplete }: StepIndicatorProps) {
   // If complete, don't show anything unless there were tool calls
   if (isComplete && toolSteps.length === 0) return null;
 
-  // If no tool steps yet but not complete, show thinking
-  if (toolSteps.length === 0 && !isComplete) {
-    return (
-      <div className="flex flex-col gap-2 my-4 pl-4 border-l-2 border-white/10">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex items-center gap-3 text-sm text-zinc-500"
-        >
-          <Loader2 className="w-3 h-3 animate-spin" />
-          <span className="text-xs">Thinking...</span>
-        </motion.div>
-      </div>
-    );
-  }
 
   if (toolSteps.length === 0) return null;
 
@@ -72,16 +57,6 @@ export function StepIndicator({ steps, isComplete }: StepIndicatorProps) {
         </motion.div>
       ))}
       
-      {!isComplete && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex items-center gap-3 text-sm text-zinc-500"
-        >
-          <Loader2 className="w-3 h-3 animate-spin" />
-          <span className="text-xs">Thinking...</span>
-        </motion.div>
-      )}
     </div>
   );
 }
