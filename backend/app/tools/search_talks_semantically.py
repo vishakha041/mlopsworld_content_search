@@ -207,7 +207,11 @@ def search_talks_semantically(
 
             # Pull out descriptor/talk entities robustly
             desc_resp = next((r["FindDescriptor"] for r in resp if "FindDescriptor" in r), None)
-            talk_resp = next((r["FindEntity"] for r in resp if "FindEntity" in r and r["FindEntity"].get("entities")), None)
+
+            # Get the LAST FindEntity response (when constraints exist, there are multiple FindEntity responses,
+            # and we need the last one which has the full Talk properties, not the first one which only has talk_id)
+            all_entity_responses = [r["FindEntity"] for r in resp if "FindEntity" in r and r["FindEntity"].get("entities")]
+            talk_resp = all_entity_responses[-1] if all_entity_responses else None
 
             if not desc_resp or not talk_resp:
                 search_summaries.append(f"{content_type} search (no matches)")
