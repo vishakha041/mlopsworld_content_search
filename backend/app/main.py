@@ -5,6 +5,7 @@ Main FastAPI application with lifespan resource management.
 """
 
 from contextlib import asynccontextmanager
+import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -30,12 +31,12 @@ async def lifespan(app: FastAPI):
     # Import here to avoid circular imports
     from app.dependencies import initialize_resources, cleanup_resources
 
-    # Initialize all resources
-    await initialize_resources(app)
+    # Kick off resource initialization in the background so startup doesn't block
+    asyncio.create_task(initialize_resources(app))
 
     print("✅ Resources loaded successfully!")
-    print(f"🌐 API running on http://{settings.HOST}:{settings.PORT}")
-    print(f"📚 API documentation available at http://{settings.HOST}:{settings.PORT}/docs")
+    print(f"🌐 API starting; binding to provided PORT")
+    print(f"📚 Docs at /docs once live")
 
     yield
 
