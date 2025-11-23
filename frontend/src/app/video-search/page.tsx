@@ -5,6 +5,7 @@ import { Search, SlidersHorizontal, Play, Clock, Eye, User, Loader2, ExternalLin
 import { motion, AnimatePresence } from 'framer-motion';
 import { searchVideos, API_BASE_URL } from '@/lib/api';
 import { VideoSearchResult } from '@/lib/types';
+import { VideoExampleQueries } from '@/components/VideoExampleQueries';
 
 export default function VideoSearchPage() {
   const [query, setQuery] = useState('');
@@ -44,33 +45,36 @@ export default function VideoSearchPage() {
       </div>
 
       {/* Search Bar */}
-      <div className="mb-12 max-w-3xl">
+      <div className="mb-8 max-w-4xl mx-auto">
         <form onSubmit={handleSearch} className="relative z-10">
           <div className="relative group">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl opacity-20 group-hover:opacity-40 transition duration-500 blur"></div>
-            <div className="relative flex items-center bg-zinc-900 rounded-2xl border border-white/10 shadow-2xl">
-              <Search className="ml-6 w-5 h-5 text-zinc-500" />
+            <div className="relative flex items-center bg-zinc-900 rounded-2xl border border-white/10 shadow-2xl p-2">
+              <Search className="ml-4 w-5 h-5 text-zinc-500" />
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Describe a scene, demo, or slide..."
-                className="w-full bg-transparent border-none px-4 py-4 text-white placeholder-zinc-500 focus:outline-none focus:ring-0 text-lg"
+                className="w-full bg-transparent border-none px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-0 text-lg"
               />
-              <button
-                type="button"
-                onClick={() => setShowFilters(!showFilters)}
-                className={`p-2 mr-2 rounded-xl transition-colors ${showFilters ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-white'}`}
-              >
-                <SlidersHorizontal className="w-5 h-5" />
-              </button>
-              <button
-                type="submit"
-                disabled={isLoading || !query.trim()}
-                className="mr-2 px-6 py-2 bg-white text-black font-medium rounded-xl hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Search'}
-              </button>
+              <div className="flex items-center gap-2 pr-2">
+                <button
+                  type="button"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`p-2 rounded-xl transition-colors ${showFilters ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
+                  title="Filters"
+                >
+                  <SlidersHorizontal className="w-5 h-5" />
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading || !query.trim()}
+                  className="px-6 py-2.5 bg-white text-black font-medium rounded-xl hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                >
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <span>Search</span>}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -105,6 +109,11 @@ export default function VideoSearchPage() {
             )}
           </AnimatePresence>
         </form>
+      </div>
+
+      {/* Example Queries */}
+      <div className="max-w-4xl mx-auto mb-12">
+        <VideoExampleQueries onSelect={setQuery} />
       </div>
 
       {/* Error Message */}
@@ -151,36 +160,6 @@ export default function VideoSearchPage() {
                   <div className="text-zinc-500 text-xs mb-1">Similarity</div>
                   <div className="text-green-400 font-medium">{Math.round(video.similarity_score * 100)}%</div>
                 </div>
-                {video.distance !== undefined && (
-                  <div>
-                    <div className="text-zinc-500 text-xs mb-1">Distance</div>
-                    <div className="text-zinc-400 font-mono">{video.distance.toFixed(4)}</div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Metadata Grid */}
-            <div className="grid grid-cols-4 gap-2 p-4 bg-black/20 text-xs border-b border-white/5">
-              <div>
-                <div className="text-zinc-500 mb-1">FPS</div>
-                <div className="text-zinc-300 font-mono">{video.metadata?.fps || 'N/A'}</div>
-              </div>
-              <div>
-                <div className="text-zinc-500 mb-1">Duration</div>
-                <div className="text-zinc-300 font-mono">
-                  {video.metadata?.duration_sec 
-                    ? `${Math.floor(video.metadata.duration_sec / 60)}m ${Math.round(video.metadata.duration_sec % 60)}s`
-                    : 'N/A'}
-                </div>
-              </div>
-              <div>
-                <div className="text-zinc-500 mb-1">Height</div>
-                <div className="text-zinc-300 font-mono">{video.metadata?.frame_height ? `${video.metadata.frame_height}p` : 'N/A'}</div>
-              </div>
-              <div>
-                <div className="text-zinc-500 mb-1">Width</div>
-                <div className="text-zinc-300 font-mono">{video.metadata?.frame_width ? `${video.metadata.frame_width}px` : 'N/A'}</div>
               </div>
             </div>
 

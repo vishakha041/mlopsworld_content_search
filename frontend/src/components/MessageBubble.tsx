@@ -89,8 +89,8 @@ export function MessageBubble({ role, content, steps = [], isStreaming = false }
           )}
 
           {/* Agent Steps (only for agent) */}
-          {!isUser && isStreaming && (
-            <StepIndicator steps={steps} isComplete={false} />
+          {!isUser && steps.length > 0 && (
+            <StepIndicator steps={steps} isComplete={!isStreaming} />
           )}
         </div>
       </motion.div>

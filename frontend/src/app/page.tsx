@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles } from 'lucide-react';
+import { Send, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAgentStream } from '@/hooks/useAgentStream';
 import { MessageBubble } from '@/components/MessageBubble';
+import { ExampleQueries } from '@/components/ExampleQueries';
 import { StreamEvent } from '@/lib/types';
 
 interface ChatMessage {
@@ -17,6 +18,7 @@ interface ChatMessage {
 export default function ChatContainer() {
   const [input, setInput] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [showExamples, setShowExamples] = useState(true);
   const { messages: streamMessages, isLoading, streamAgent, reset } = useAgentStream();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -89,38 +91,78 @@ export default function ChatContainer() {
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-6 scrollbar-hide">
-        {chatHistory.length === 0 && (
+      <div className="flex-1 overflow-y-auto px-4 pb-4">
+        {chatHistory.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-zinc-500 space-y-4 opacity-50">
             <Sparkles className="w-12 h-12" />
             <p>Start a conversation to explore the content</p>
           </div>
-        )}
+        ) : (
+          <div className="space-y-6">
+            {chatHistory.map((msg) => (
+              <MessageBubble 
+                key={msg.id} 
+                role={msg.role} 
+                content={msg.content} 
+                steps={msg.steps}
+              />
+            ))}
 
-        {chatHistory.map((msg) => (
-          <MessageBubble 
-            key={msg.id} 
-            role={msg.role} 
-            content={msg.content} 
-            steps={msg.steps}
-          />
-        ))}
-
-        {/* Active Streaming Message */}
-        {isLoading && (
-          <MessageBubble 
-            role="agent" 
-            content={currentAnswer} // Will be undefined until done, which is fine
-            steps={currentStreamSteps}
-            isStreaming={true}
-          />
+            {/* Active Streaming Message */}
+            {isLoading && (
+              <MessageBubble 
+                role="agent" 
+                content={currentAnswer} // Will be undefined until done, which is fine
+                steps={currentStreamSteps}
+                isStreaming={true}
+              />
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
         )}
-        
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Input Area */}
       <div className="mt-4 px-4">
+        <div className="flex justify-between items-center mb-2">
+          <AnimatePresence>
+            {!showExamples && (
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowExamples(true)}
+                className="text-xs text-zinc-500 hover:text-purple-400 flex items-center gap-1 transition-colors ml-auto"
+              >
+                <Sparkles className="w-3 h-3" />
+                Show Examples
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <AnimatePresence>
+          {showExamples && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="relative">
+                <button 
+                  onClick={() => setShowExamples(false)}
+                  className="absolute top-0 right-0 p-1 text-zinc-500 hover:text-zinc-300 transition-colors z-10"
+                >
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                <ExampleQueries onSelect={(q) => setInput(q)} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <form onSubmit={handleSubmit} className="relative group">
           <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl opacity-20 group-hover:opacity-40 transition duration-500 blur"></div>
           <div className="relative flex items-center bg-zinc-900 rounded-2xl border border-white/10 shadow-2xl">
