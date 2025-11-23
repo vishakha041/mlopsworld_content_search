@@ -152,10 +152,9 @@ def search_talks_semantically(
                         "results": {"list": list_fields_for_set(set_name)}
                     }},
                     {"FindEntity": {
-                        "_ref": 4,
                         "with_class": "Talk",
                         "is_connected_to": {"ref": 3, "connection_class": connection_class},
-                        "results": {"list": ["talk_id","talk_title","speaker_name","youtube_url","event_name","category_primary","yt_views","yt_published_at"]}
+                        "results": {"list": ["talk_id","talk_title","speaker_name","youtube_url","event_name","category_primary"]}
                     }}
                 ]
             else:
@@ -185,10 +184,9 @@ def search_talks_semantically(
                             "results": {"list": list_fields_for_set(set_name)}
                         }},
                         {"FindEntity": {
-                            "_ref": 3,
                             "with_class": "Talk",
                             "is_connected_to": {"ref": 2, "connection_class": connection_class},
-                            "results": {"list": ["talk_id","talk_title","speaker_name","youtube_url","event_name","category_primary","yt_views","yt_published_at"]}
+                            "results": {"list": ["talk_id","talk_title","speaker_name","youtube_url","event_name","category_primary"]}
                         }}
                     ]
                 else:
@@ -199,10 +197,9 @@ def search_talks_semantically(
                             "results": {"list": list_fields_for_set(set_name)}
                         }},
                         {"FindEntity": {
-                            "_ref": 2,
                             "with_class": "Talk",
                             "is_connected_to": {"ref": 1, "connection_class": connection_class},
-                            "results": {"list": ["talk_id","talk_title","speaker_name","youtube_url","event_name","category_primary","yt_views","yt_published_at"]}
+                            "results": {"list": ["talk_id","talk_title","speaker_name","youtube_url","event_name","category_primary"]}
                         }}
                     ]
 
@@ -210,7 +207,11 @@ def search_talks_semantically(
 
             # Pull out descriptor/talk entities robustly
             desc_resp = next((r["FindDescriptor"] for r in resp if "FindDescriptor" in r), None)
-            talk_resp = next((r["FindEntity"] for r in resp if "FindEntity" in r and r["FindEntity"].get("entities")), None)
+
+            # Get the LAST FindEntity response (when constraints exist, there are multiple FindEntity responses,
+            # and we need the last one which has the full Talk properties, not the first one which only has talk_id)
+            all_entity_responses = [r["FindEntity"] for r in resp if "FindEntity" in r and r["FindEntity"].get("entities")]
+            talk_resp = all_entity_responses[-1] if all_entity_responses else None
 
             if not desc_resp or not talk_resp:
                 search_summaries.append(f"{content_type} search (no matches)")
@@ -244,12 +245,6 @@ def search_talks_semantically(
                     matching_text = safe_get(d, "bio_text", "")
                     context_info = "From speaker bio"
 
-                # Extract and format published date
-                pub_date = None
-                yt_pub = safe_get(talk_info, "yt_published_at")
-                if yt_pub and isinstance(yt_pub, dict) and "_date" in yt_pub:
-                    pub_date = yt_pub["_date"]
-
                 all_results.append({
                     "talk_id": talk_id,
                     "title": safe_get(talk_info, "talk_title"),
@@ -257,14 +252,12 @@ def search_talks_semantically(
                     "youtube_url": safe_get(talk_info, "youtube_url"),
                     "event": safe_get(talk_info, "event_name"),
                     "category": safe_get(talk_info, "category_primary"),
-                    "views": safe_get(talk_info, "yt_views"),
-                    "published_date": pub_date,
                     "similarity_score": round(similarity, 3),
                     "matching_text": (matching_text[:300] + "...") if len(matching_text) > 300 else matching_text,
                     "content_type": content_type,
                     "context_info": context_info
                 })
-            
+
             search_summaries.append(f"{content_type} search")
 
         # Sort + trim
