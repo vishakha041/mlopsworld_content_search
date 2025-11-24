@@ -19,6 +19,8 @@ load_dotenv()
 EMBED_MODEL = os.getenv("EMBED_MODEL", "google/embeddinggemma-300m")
 EMBED_DIM = int(os.getenv("EMBED_DIM", "768"))
 APERTUREDB_KEY = os.getenv("APERTUREDB_KEY")
+USE_HF_API_EMBEDDINGS = os.getenv("USE_HF_API_EMBEDDINGS", "false").lower() == "true"
+HF_TOKEN = os.getenv("HF_TOKEN")
 
 # Descriptor set names (matching your schema)
 SET_TRANSCRIPT = "ds_transcript_chunks_v1"
@@ -35,18 +37,68 @@ _embedding_model = None
 _db_connector = None
 _twelvelabs_client = None
 
+class HFEmbeddingModel:
+    """
+    Wrapper for Hugging Face Inference API to mimic SentenceTransformer.encode
+    """
+    def __init__(self, model_name: str, api_key: str):
+        try:
+            from huggingface_hub import InferenceClient
+        except ImportError:
+            raise ImportError("huggingface_hub is required for API embeddings")
+            
+        self.client = InferenceClient(token=api_key)
+        self.model_name = model_name
+
+    def encode(self, sentences, normalize_embeddings=False, **kwargs):
+        if isinstance(sentences, str):
+            sentences = [sentences]
+            is_single = True
+        else:
+            is_single = False
+
+        import numpy as np
+        
+        try:
+            # Call API - feature_extraction returns embeddings
+            response = self.client.feature_extraction(sentences, model=self.model_name)
+            embeddings = np.array(response)
+            
+            # Handle 3D output (batch, seq, dim) -> Mean pooling
+            if len(embeddings.shape) == 3:
+                embeddings = np.mean(embeddings, axis=1)
+                
+            # Normalize if requested
+            if normalize_embeddings:
+                norm = np.linalg.norm(embeddings, axis=1, keepdims=True)
+                embeddings = embeddings / np.maximum(norm, 1e-12)
+                
+            if is_single:
+                return embeddings[0]
+            return embeddings
+            
+        except Exception as e:
+            print(f"HF API Error: {e}")
+            raise e
+
 def create_embedding_model():
     """
     Create and return a new embedding model instance.
-
-    Used by FastAPI for resource initialization.
+    Supports both local SentenceTransformer and HF Inference API.
     """
+    if USE_HF_API_EMBEDDINGS:
+        if not HF_TOKEN:
+            print("HF_TOKEN not found, falling back to local model")
+        else:
+            print(f"Using HF Inference API for embeddings: {EMBED_MODEL}")
+            return HFEmbeddingModel(EMBED_MODEL, HF_TOKEN)
+
     from sentence_transformers import SentenceTransformer
     
-    print(f"🧠 Loading embedding model: {EMBED_MODEL}...")
+    print(f"Loading local embedding model: {EMBED_MODEL}...")
     model = SentenceTransformer(EMBED_MODEL)
     model.max_seq_length = 512
-    print("✅ Embedding model loaded!")
+    print("Embedding model loaded!")
     return model
 
 def get_embedding_model():
@@ -99,9 +151,9 @@ def _create_connection():
             "APERTUREDB_KEY environment variable must be set. "
             "Please check your .env file."
         )
-    print(f"🔌 Connecting to ApertureDB (key length: {len(adb_key)} chars)...")
+    print(f"Connecting to ApertureDB (key length: {len(adb_key)} chars)...")
     connector = create_connector(key=adb_key)
-    print("✅ ApertureDB connection established!")
+    print("ApertureDB connection established!")
     return connector
 
 def to_blob(vec: np.ndarray) -> bytes:
@@ -193,19 +245,19 @@ def create_twelvelabs_client():
         tl_api_key = os.getenv('TL_API_KEY', '')
 
         if not tl_api_key:
-            print("⚠️ TL_API_KEY not found - video search will not be available")
+            print("TL_API_KEY not found - video search will not be available")
             return None
 
-        print(f"🎥 Initializing Twelve Labs client (key length: {len(tl_api_key)} chars)...")
+        print(f"Initializing Twelve Labs client (key length: {len(tl_api_key)} chars)...")
         tl = TwelveLabs(api_key=tl_api_key)
-        print("✅ Twelve Labs client initialized!")
+        print("Twelve Labs client initialized!")
         return tl
 
     except ImportError:
-        print("⚠️ Twelve Labs package not installed - video search will not be available")
+        print("Twelve Labs package not installed - video search will not be available")
         return None
     except Exception as e:
-        print(f"❌ Failed to initialize Twelve Labs client: {e}")
+        print(f"Failed to initialize Twelve Labs client: {e}")
         return None
 
 def get_twelvelabs_client():

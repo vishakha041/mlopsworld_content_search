@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     # Tool Configuration
     EMBED_MODEL: str = "google/embeddinggemma-300m"
     EMBED_DIM: int = 768
+    USE_HF_API_EMBEDDINGS: bool = False
 
     # Rate Limiting
     MAX_REQUESTS_PER_MINUTE: int = 60

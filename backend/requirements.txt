@@ -16,6 +16,7 @@ langgraph
 # Database and Embeddings
 aperturedb==0.4.53
 sentence-transformers
+huggingface-hub>=0.23.0
 numpy
 
 # Video Processing
