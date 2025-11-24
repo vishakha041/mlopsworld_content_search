@@ -4,9 +4,10 @@ Health Check Endpoints
 Endpoints for checking API and service health.
 """
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, BackgroundTasks
 from app.api.models.responses import HealthResponse, DetailedHealthResponse
 from app.config import settings
+import asyncio
 
 router = APIRouter()
 
@@ -80,3 +81,41 @@ async def detailed_status(request: Request):
             "max_iterations": settings.MAX_ITERATIONS
         }
     )
+
+
+@router.post("/api/v1/warmup")
+async def warmup(request: Request, background_tasks: BackgroundTasks):
+    """
+    Warmup endpoint to initialize all resources.
+    
+    Call this after deployment to pre-load models and connections
+    so that actual user requests don't timeout.
+    
+    Returns immediately but initializes resources in background.
+    """
+    def initialize_all():
+        """Initialize all resources synchronously"""
+        try:
+            from app.dependencies import get_db_connector, get_embedding_model, get_agent
+            
+            # These will trigger lazy initialization
+            print("Warmup: Loading database connector...")
+            get_db_connector(request)
+            
+            print("Warmup: Loading embedding model...")
+            get_embedding_model(request)
+            
+            print("Warmup: Loading agent...")
+            get_agent(request)
+            
+            print("Warmup complete - all resources loaded!")
+        except Exception as e:
+            print(f"Warmup failed: {e}")
+    
+    # Run initialization in background
+    background_tasks.add_task(initialize_all)
+    
+    return {
+        "status": "warmup_started",
+        "message": "Resources are being initialized in the background. Check /api/v1/status to see progress."
+    }

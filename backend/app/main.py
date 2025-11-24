@@ -4,6 +4,8 @@ MLOps Events FastAPI Backend
 Main FastAPI application with lifespan resource management.
 """
 
+from contextlib import asynccontextmanager
+import threading
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -15,13 +17,55 @@ print("Starting MLOps Events API...")
 print("Resources will be loaded lazily on first use")
 print("API binding to port...")
 
-# Create FastAPI app (no blocking lifespan)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context - triggers warmup in background after startup"""
+    
+    # Startup: trigger warmup in background thread
+    def warmup_resources():
+        """Initialize resources in background"""
+        import time
+        time.sleep(2)  # Wait for server to be fully ready
+        
+        try:
+            print("Auto-warmup: Initializing resources...")
+            
+            from app.tools.utils import create_db_connector, create_embedding_model
+            from app.agent.agent import create_mlops_agent
+            
+            print("   Loading database connector...")
+            app.state.db_connector = create_db_connector()
+            
+            print("   Loading embedding model...")
+            app.state.embedding_model = create_embedding_model()
+            
+            print("   Loading agent...")
+            app.state.agent = create_mlops_agent()
+            
+            print("Auto-warmup complete - all resources ready!")
+        except Exception as e:
+            print(f"Auto-warmup encountered an error: {e}")
+            print("   Resources will still load on first request")
+    
+    # Start warmup in background thread
+    warmup_thread = threading.Thread(target=warmup_resources, daemon=True)
+    warmup_thread.start()
+    
+    yield
+    
+    # Shutdown (optional cleanup)
+    print("Shutting down...")
+
+
+# Create FastAPI app with lifespan for auto-warmup
 app = FastAPI(
     title="MLOps Events API",
     description="AI-powered semantic search and analysis platform for MLOps conference talks",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan
 )
 
 # Configure CORS
