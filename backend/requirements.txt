@@ -15,7 +15,7 @@ langgraph
 
 # Database and Embeddings
 aperturedb==0.4.53
-sentence-transformers
+# sentence-transformers # uncomment if using sentence-transformers directly for embeddings rather than API
 huggingface-hub>=0.23.0
 numpy
 
