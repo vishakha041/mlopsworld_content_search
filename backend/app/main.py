@@ -27,53 +27,16 @@ app = FastAPI(
 # No auto-warmup - resources load lazily on first request only
 # This prevents deployment timeouts on free tier hosting
 
-# Configure CORS
-origins = settings.get_allowed_origins_list()
-
-# Handle wildcard origin with credentials
-if "*" in origins:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origin_regex=".*",
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-        expose_headers=["*"]
-    )
-else:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-        expose_headers=["*"]
-    )
-
-# Add middleware to handle OPTIONS requests
-@app.middleware("http")
-async def handle_options(request: Request, call_next):
-    """Handle OPTIONS preflight requests"""
-    if request.method == "OPTIONS":
-        # Get the origin from the request
-        origin = request.headers.get("origin", "")
-        
-        # Check if origin is allowed
-        allowed_origins = settings.get_allowed_origins_list()
-        allow_origin = origin if origin in allowed_origins else (allowed_origins[0] if allowed_origins else "*")
-        
-        return JSONResponse(
-            content={},
-            status_code=200,
-            headers={
-                "Access-Control-Allow-Origin": allow_origin,
-                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, X-API-Key, Authorization, Accept, Origin",
-                "Access-Control-Allow-Credentials": "true",
-                "Access-Control-Max-Age": "3600",
-            }
-        )
-    return await call_next(request)
+# Configure CORS - FastAPI's CORSMiddleware handles everything including OPTIONS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.get_allowed_origins_list(),
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "X-API-Key", "Authorization", "Accept", "Origin"],
+    expose_headers=["*"],
+    max_age=3600
+)
 
 # Setup exception handlers
 setup_exception_handlers(app)
