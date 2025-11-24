@@ -14,13 +14,6 @@ from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
 
-# ApertureDB imports
-from aperturedb.CommonLibrary import create_connector
-from aperturedb import Connector
-
-# Sentence Transformers for embeddings (matching notebook pattern)
-from sentence_transformers import SentenceTransformer
-
 # ===== CONFIGURATION =====
 # These should match your setup - can be overridden via environment variables
 EMBED_MODEL = os.getenv("EMBED_MODEL", "google/embeddinggemma-300m")
@@ -48,6 +41,8 @@ def create_embedding_model():
 
     Used by FastAPI for resource initialization.
     """
+    from sentence_transformers import SentenceTransformer
+    
     print(f"🧠 Loading embedding model: {EMBED_MODEL}...")
     model = SentenceTransformer(EMBED_MODEL)
     model.max_seq_length = 512
@@ -95,6 +90,8 @@ def _create_connection():
     Returns:
         Connector: ApertureDB connector instance
     """
+    from aperturedb.CommonLibrary import create_connector
+    
     # Re-check environment variable at runtime (in case it was set after import)
     adb_key = os.getenv("APERTUREDB_KEY") or APERTUREDB_KEY
     if not adb_key:
