@@ -28,31 +28,44 @@ app = FastAPI(
 # This prevents deployment timeouts on free tier hosting
 
 # Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.get_allowed_origins_list(),
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"]
-)
+origins = settings.get_allowed_origins_list()
+
+# Handle wildcard origin with credentials
+if "*" in origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origin_regex=".*",
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["*"]
+    )
+else:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["*"]
+    )
 
 # Add middleware to handle OPTIONS requests
-@app.middleware("http")
-async def handle_options(request: Request, call_next):
-    """Handle OPTIONS preflight requests"""
-    if request.method == "OPTIONS":
-        return JSONResponse(
-            content={},
-            status_code=200,
-            headers={
-                "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
-                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, X-API-Key, Authorization",
-                "Access-Control-Allow-Credentials": "true",
-            }
-        )
-    return await call_next(request)
+# @app.middleware("http")
+# async def handle_options(request: Request, call_next):
+#     """Handle OPTIONS preflight requests"""
+#     if request.method == "OPTIONS":
+#         return JSONResponse(
+#             content={},
+#             status_code=200,
+#             headers={
+#                 "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
+#                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+#                 "Access-Control-Allow-Headers": "Content-Type, X-API-Key, Authorization",
+#                 "Access-Control-Allow-Credentials": "true",
+#             }
+#         )
+#     return await call_next(request)
 
 # Setup exception handlers
 setup_exception_handlers(app)

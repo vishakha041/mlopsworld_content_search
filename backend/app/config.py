@@ -21,7 +21,7 @@ class Settings(BaseSettings):
 
     # API Security
     API_SECRET_KEY: str = "your-secret-key-change-in-production"
-    ALLOWED_ORIGINS: str = "http://localhost:8501,http://localhost:3000"
+    ALLOWED_ORIGINS: str = "*"
 
     # Server Configuration
     HOST: str = "0.0.0.0"
