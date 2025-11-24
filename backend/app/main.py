@@ -27,21 +27,7 @@ app = FastAPI(
 # No auto-warmup - resources load lazily on first request only
 # This prevents deployment timeouts on free tier hosting
 
-# Configure CORS - FastAPI's CORSMiddleware handles everything including OPTIONS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.get_allowed_origins_list(),
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["Content-Type", "X-API-Key", "Authorization", "Accept", "Origin"],
-    expose_headers=["*"],
-    max_age=3600
-)
-
-# Setup exception handlers
-setup_exception_handlers(app)
-
-# Import and include routers
+# Import and include routers FIRST
 from app.api.routes import health, agent, talks, speakers, videos, trends
 
 app.include_router(health.router, tags=["Health"])
@@ -50,6 +36,19 @@ app.include_router(talks.router, prefix="/api/v1/talks", tags=["Talks"])
 app.include_router(speakers.router, prefix="/api/v1/speakers", tags=["Speakers"])
 app.include_router(videos.router, prefix="/api/v1/videos", tags=["Videos"])
 app.include_router(trends.router, prefix="/api/v1/trends", tags=["Trends"])
+
+# Configure CORS AFTER routes - this is critical!
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for now
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"]
+)
+
+# Setup exception handlers
+setup_exception_handlers(app)
 
 
 @app.get("/")
