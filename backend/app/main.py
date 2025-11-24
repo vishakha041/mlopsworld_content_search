@@ -4,7 +4,7 @@ MLOps Events FastAPI Backend
 Main FastAPI application with lifespan resource management.
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -31,7 +31,25 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
+
+# Add middleware to handle OPTIONS requests
+@app.middleware("http")
+async def handle_options(request: Request, call_next):
+    """Handle OPTIONS preflight requests"""
+    if request.method == "OPTIONS":
+        return JSONResponse(
+            content={},
+            status_code=200,
+            headers={
+                "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type, X-API-Key, Authorization",
+                "Access-Control-Allow-Credentials": "true",
+            }
+        )
+    return await call_next(request)
 
 # Setup exception handlers
 setup_exception_handlers(app)
