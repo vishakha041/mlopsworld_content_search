@@ -17,12 +17,12 @@ from app.api.models.responses import (
     TalkDetailsResponse,
     SimilarContentResponse
 )
-from app.dependencies import get_db_connector, get_embedding_model, verify_api_key
+from app.dependencies import get_db_connector, get_embedding_model, verify_api_key_skip_options
 
 router = APIRouter()
 
 
-@router.post("/search", response_model=SemanticSearchResponse, dependencies=[Depends(verify_api_key)])
+@router.post("/search", response_model=SemanticSearchResponse, dependencies=[Depends(verify_api_key_skip_options)])
 async def search_talks_semantically(
     request: SemanticSearchRequest,
     db = Depends(get_db_connector),
@@ -67,7 +67,7 @@ async def search_talks_semantically(
         raise HTTPException(status_code=500, detail=f"Semantic search failed: {str(e)}")
 
 
-@router.post("/filter", response_model=FilterTalksResponse, dependencies=[Depends(verify_api_key)])
+@router.post("/filter", response_model=FilterTalksResponse, dependencies=[Depends(verify_api_key_skip_options)])
 async def filter_talks(
     request: FilterTalksRequest,
     db = Depends(get_db_connector)
@@ -118,7 +118,7 @@ async def filter_talks(
         raise HTTPException(status_code=500, detail=f"Talk filtering failed: {str(e)}")
 
 
-@router.post("/details", response_model=TalkDetailsResponse, dependencies=[Depends(verify_api_key)])
+@router.post("/details", response_model=TalkDetailsResponse, dependencies=[Depends(verify_api_key_skip_options)])
 async def get_talk_details(
     request: TalkDetailsRequest,
     db = Depends(get_db_connector)
@@ -161,7 +161,7 @@ async def get_talk_details(
         raise HTTPException(status_code=500, detail=f"Failed to get talk details: {str(e)}")
 
 
-@router.post("/similar", response_model=SimilarContentResponse, dependencies=[Depends(verify_api_key)])
+@router.post("/similar", response_model=SimilarContentResponse, dependencies=[Depends(verify_api_key_skip_options)])
 async def find_similar_talks(
     request: SimilarContentRequest,
     db = Depends(get_db_connector),

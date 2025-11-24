@@ -7,12 +7,12 @@ Endpoints for speaker analytics and activity analysis.
 from fastapi import APIRouter, Depends, HTTPException
 from app.api.models.requests import SpeakerAnalysisRequest
 from app.api.models.responses import SpeakerAnalysisResponse
-from app.dependencies import get_db_connector, verify_api_key
+from app.dependencies import get_db_connector, verify_api_key_skip_options
 
 router = APIRouter()
 
 
-@router.post("/analyze", response_model=SpeakerAnalysisResponse, dependencies=[Depends(verify_api_key)])
+@router.post("/analyze", response_model=SpeakerAnalysisResponse, dependencies=[Depends(verify_api_key_skip_options)])
 async def analyze_speaker_activity(
     request: SpeakerAnalysisRequest,
     db = Depends(get_db_connector)

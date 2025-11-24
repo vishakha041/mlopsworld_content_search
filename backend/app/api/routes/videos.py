@@ -10,7 +10,7 @@ import tempfile
 import os
 from app.api.models.requests import VideoSearchRequest
 from app.api.models.responses import VideoSearchResponse
-from app.dependencies import get_db_connector, get_twelvelabs_client, verify_api_key
+from app.dependencies import get_db_connector, get_twelvelabs_client, verify_api_key_skip_options
 from app.tools.utils import create_db_connector
 
 router = APIRouter()
@@ -83,7 +83,7 @@ def stream_video(
         raise HTTPException(status_code=500, detail=f"Failed to stream video: {str(e)}")
 
 
-@router.post("/search", response_model=VideoSearchResponse, dependencies=[Depends(verify_api_key)])
+@router.post("/search", response_model=VideoSearchResponse, dependencies=[Depends(verify_api_key_skip_options)])
 async def search_videos_semantically(
     request: VideoSearchRequest,
     db = Depends(get_db_connector),

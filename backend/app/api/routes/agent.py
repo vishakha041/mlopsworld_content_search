@@ -9,13 +9,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from app.api.models.requests import AgentQueryRequest
 from app.api.models.responses import AgentQueryResponse, AgentStep, StreamEvent
-from app.dependencies import get_agent, verify_api_key
+from app.dependencies import get_agent, verify_api_key_skip_options
 from datetime import datetime
 
 router = APIRouter()
 
 
-@router.post("/query", response_model=AgentQueryResponse, dependencies=[Depends(verify_api_key)])
+@router.post("/query", response_model=AgentQueryResponse, dependencies=[Depends(verify_api_key_skip_options)])
 async def query_agent(
     request: AgentQueryRequest,
     agent = Depends(get_agent)
@@ -82,7 +82,7 @@ async def query_agent(
         )
 
 
-@router.post("/query/stream", dependencies=[Depends(verify_api_key)])
+@router.post("/query/stream", dependencies=[Depends(verify_api_key_skip_options)])
 async def stream_agent_query(
     request: AgentQueryRequest,
     agent = Depends(get_agent)

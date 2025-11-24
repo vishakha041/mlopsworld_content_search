@@ -51,21 +51,29 @@ else:
     )
 
 # Add middleware to handle OPTIONS requests
-# @app.middleware("http")
-# async def handle_options(request: Request, call_next):
-#     """Handle OPTIONS preflight requests"""
-#     if request.method == "OPTIONS":
-#         return JSONResponse(
-#             content={},
-#             status_code=200,
-#             headers={
-#                 "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
-#                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-#                 "Access-Control-Allow-Headers": "Content-Type, X-API-Key, Authorization",
-#                 "Access-Control-Allow-Credentials": "true",
-#             }
-#         )
-#     return await call_next(request)
+@app.middleware("http")
+async def handle_options(request: Request, call_next):
+    """Handle OPTIONS preflight requests"""
+    if request.method == "OPTIONS":
+        # Get the origin from the request
+        origin = request.headers.get("origin", "")
+        
+        # Check if origin is allowed
+        allowed_origins = settings.get_allowed_origins_list()
+        allow_origin = origin if origin in allowed_origins else (allowed_origins[0] if allowed_origins else "*")
+        
+        return JSONResponse(
+            content={},
+            status_code=200,
+            headers={
+                "Access-Control-Allow-Origin": allow_origin,
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type, X-API-Key, Authorization, Accept, Origin",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Max-Age": "3600",
+            }
+        )
+    return await call_next(request)
 
 # Setup exception handlers
 setup_exception_handlers(app)

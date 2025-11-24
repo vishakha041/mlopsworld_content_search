@@ -4,7 +4,7 @@ Authentication Middleware
 API key authentication for the FastAPI application.
 """
 
-from fastapi import Header, HTTPException, status
+from fastapi import Header, HTTPException, status, Request
 from typing import Optional
 from app.config import settings
 
@@ -36,6 +36,32 @@ async def verify_api_key(x_api_key: Optional[str] = Header(None, alias="X-API-Ke
         )
 
     return x_api_key
+
+
+async def verify_api_key_skip_options(
+    request: Request,
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key")
+):
+    """
+    Verify API key but skip authentication for OPTIONS (preflight) requests.
+    This allows CORS preflight requests to succeed without authentication.
+    
+    Args:
+        request: The incoming request
+        x_api_key: API key from X-API-Key header
+    
+    Returns:
+        The validated API key or None for OPTIONS requests
+    
+    Raises:
+        HTTPException: If API key is missing or invalid (except for OPTIONS)
+    """
+    # Skip auth for OPTIONS (preflight) requests
+    if request.method == "OPTIONS":
+        return None
+    
+    # Require auth for all other requests
+    return await verify_api_key(x_api_key)
 
 
 class OptionalAuth:

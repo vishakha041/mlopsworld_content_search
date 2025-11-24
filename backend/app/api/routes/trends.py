@@ -7,12 +7,12 @@ Endpoints for analyzing topics, tools, technologies, and trends.
 from fastapi import APIRouter, Depends, HTTPException
 from app.api.models.requests import TrendAnalysisRequest, UniqueValuesRequest
 from app.api.models.responses import TrendAnalysisResponse, UniqueValuesResponse
-from app.dependencies import get_db_connector, verify_api_key
+from app.dependencies import get_db_connector, verify_api_key_skip_options
 
 router = APIRouter()
 
 
-@router.post("/analyze", response_model=TrendAnalysisResponse, dependencies=[Depends(verify_api_key)])
+@router.post("/analyze", response_model=TrendAnalysisResponse, dependencies=[Depends(verify_api_key_skip_options)])
 async def analyze_trends(
     request: TrendAnalysisRequest,
     db = Depends(get_db_connector)
@@ -69,7 +69,7 @@ async def analyze_trends(
         raise HTTPException(status_code=500, detail=f"Trend analysis failed: {str(e)}")
 
 
-@router.post("/unique-values", response_model=UniqueValuesResponse, dependencies=[Depends(verify_api_key)])
+@router.post("/unique-values", response_model=UniqueValuesResponse, dependencies=[Depends(verify_api_key_skip_options)])
 async def get_unique_values(
     request: UniqueValuesRequest,
     db = Depends(get_db_connector)
