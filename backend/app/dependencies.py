@@ -10,8 +10,12 @@ This module provides dependency injection functions for shared resources:
 
 from fastapi import FastAPI, Request, Depends, HTTPException, Header
 from typing import Optional
+import threading
 
 from app.config import settings
+
+# Thread lock for lazy initialization
+_init_lock = threading.Lock()
 
 
 async def initialize_resources(app: FastAPI):
@@ -84,23 +88,42 @@ async def cleanup_resources(app: FastAPI):
 # ===== Dependency Injection Functions =====
 
 def get_db_connector(request: Request):
-    """Get database connector from application state"""
-    if not hasattr(request.app.state, "db_connector"):
-        raise HTTPException(status_code=503, detail="Database not initialized")
+    """Get database connector from application state (lazy init)"""
+    if not hasattr(request.app.state, "db_connector") or request.app.state.db_connector is None:
+        with _init_lock:
+            # Double-check after acquiring lock
+            if not hasattr(request.app.state, "db_connector") or request.app.state.db_connector is None:
+                from app.tools.utils import create_db_connector
+                print("   Lazy-loading database connector...")
+                request.app.state.db_connector = create_db_connector()
     return request.app.state.db_connector
 
 
 def get_embedding_model(request: Request):
-    """Get embedding model from application state"""
-    if not hasattr(request.app.state, "embedding_model"):
-        raise HTTPException(status_code=503, detail="Embedding model not initialized")
+    """Get embedding model from application state (lazy init)"""
+    if not hasattr(request.app.state, "embedding_model") or request.app.state.embedding_model is None:
+        with _init_lock:
+            # Double-check after acquiring lock
+            if not hasattr(request.app.state, "embedding_model") or request.app.state.embedding_model is None:
+                from app.tools.utils import create_embedding_model
+                print("   Lazy-loading embedding model...")
+                request.app.state.embedding_model = create_embedding_model()
     return request.app.state.embedding_model
 
 
 def get_twelvelabs_client(request: Request):
-    """Get Twelve Labs client from application state"""
+    """Get Twelve Labs client from application state (lazy init)"""
     if not hasattr(request.app.state, "twelvelabs_client"):
-        raise HTTPException(status_code=503, detail="Twelve Labs client not initialized")
+        with _init_lock:
+            # Double-check after acquiring lock
+            if not hasattr(request.app.state, "twelvelabs_client"):
+                if settings.TL_API_KEY:
+                    from app.tools.utils import create_twelvelabs_client
+                    print("   Lazy-loading Twelve Labs client...")
+                    request.app.state.twelvelabs_client = create_twelvelabs_client()
+                else:
+                    request.app.state.twelvelabs_client = None
+    
     if request.app.state.twelvelabs_client is None:
         raise HTTPException(
             status_code=503,
@@ -110,9 +133,14 @@ def get_twelvelabs_client(request: Request):
 
 
 def get_agent(request: Request):
-    """Get LangGraph agent from application state"""
-    if not hasattr(request.app.state, "agent"):
-        raise HTTPException(status_code=503, detail="Agent not initialized")
+    """Get LangGraph agent from application state (lazy init)"""
+    if not hasattr(request.app.state, "agent") or request.app.state.agent is None:
+        with _init_lock:
+            # Double-check after acquiring lock
+            if not hasattr(request.app.state, "agent") or request.app.state.agent is None:
+                from app.agent.agent import create_mlops_agent
+                print("   Lazy-loading agent...")
+                request.app.state.agent = create_mlops_agent()
     return request.app.state.agent
 
 

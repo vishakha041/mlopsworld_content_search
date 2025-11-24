@@ -4,8 +4,6 @@ MLOps Events FastAPI Backend
 Main FastAPI application with lifespan resource management.
 """
 
-from contextlib import asynccontextmanager
-import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -13,47 +11,17 @@ from fastapi.responses import JSONResponse
 from app.config import settings
 from app.api.middleware.errors import setup_exception_handlers
 
+print("Starting MLOps Events API...")
+print("Resources will be loaded lazily on first use")
+print("API binding to port...")
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """
-    Lifespan context manager for resource initialization and cleanup.
-
-    Resources initialized once at startup and shared across all requests:
-    - Database connector
-    - Embedding model
-    - Twelve Labs client
-    - LangGraph agent
-    """
-    print("🚀 Starting MLOps Events API...")
-    print("📦 Loading resources...")
-
-    # Import here to avoid circular imports
-    from app.dependencies import initialize_resources, cleanup_resources
-
-    # Kick off resource initialization in the background so startup doesn't block
-    asyncio.create_task(initialize_resources(app))
-
-    print("✅ Resources loaded successfully!")
-    print(f"🌐 API starting; binding to provided PORT")
-    print(f"📚 Docs at /docs once live")
-
-    yield
-
-    # Shutdown - cleanup resources
-    print("🛑 Shutting down...")
-    await cleanup_resources(app)
-    print("✅ Cleanup complete")
-
-
-# Create FastAPI app
+# Create FastAPI app (no blocking lifespan)
 app = FastAPI(
     title="MLOps Events API",
     description="AI-powered semantic search and analysis platform for MLOps conference talks",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc",
-    lifespan=lifespan
+    redoc_url="/redoc"
 )
 
 # Configure CORS
