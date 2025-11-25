@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAgentStream } from '@/hooks/useAgentStream';
 import { MessageBubble } from '@/components/MessageBubble';
 import { ExampleQueries } from '@/components/ExampleQueries';
+import { ResultsSidebar, hasRetrievedResults } from '@/components/ResultsSidebar';
 import { StreamEvent } from '@/lib/types';
 
 interface ChatMessage {
@@ -19,6 +20,8 @@ export default function ChatContainer() {
   const [input, setInput] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [showExamples, setShowExamples] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarSteps, setSidebarSteps] = useState<StreamEvent[]>([]);
   const { messages: streamMessages, isLoading, streamAgent, reset } = useAgentStream();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -39,6 +42,7 @@ export default function ChatContainer() {
 
     const userQuery = input.trim();
     setInput('');
+    setShowExamples(false); // Collapse examples on submit
     
     // Add user message immediately
     const userMsg: ChatMessage = {
@@ -51,6 +55,12 @@ export default function ChatContainer() {
     
     // Start streaming
     await streamAgent(userQuery);
+  };
+
+  // Handle showing results in sidebar for a specific message
+  const handleShowResults = (steps: StreamEvent[]) => {
+    setSidebarSteps(steps);
+    setSidebarOpen(true);
   };
 
   // Handle stream completion and update history
@@ -68,6 +78,13 @@ export default function ChatContainer() {
         };
         
         setChatHistory(prev => [...prev, agentMsg]);
+        
+        // Auto-open sidebar if there are retrieved results
+        if (hasRetrievedResults(streamMessages)) {
+          setSidebarSteps(streamMessages);
+          setSidebarOpen(true);
+        }
+        
         reset(); // Clear stream state for next interaction
       }
     }
@@ -78,50 +95,52 @@ export default function ChatContainer() {
   const currentAnswer = streamMessages.find(m => m.event_type === 'answer')?.data.answer;
 
   return (
-    <div className="flex flex-col h-screen max-w-5xl mx-auto px-4 pt-8 pb-4">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-8 px-4">
-        <div className="p-2 bg-white/5 rounded-lg border border-white/10">
-          <Sparkles className="w-5 h-5 text-purple-400" />
-        </div>
-        <div>
-          <h1 className="text-xl font-semibold text-white">MLOps Content Agent</h1>
-          <p className="text-sm text-zinc-400">Ask about talks, speakers, and trends</p>
-        </div>
-      </div>
-
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
-        {chatHistory.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-zinc-500 space-y-4 opacity-50">
-            <Sparkles className="w-12 h-12" />
-            <p>Start a conversation to explore the content</p>
+    <>
+      <div className={`flex flex-col h-screen mx-auto px-4 pt-8 pb-4 transition-all duration-300 ${sidebarOpen ? 'mr-96' : ''}`} style={{ maxWidth: sidebarOpen ? 'calc(100% - 24rem)' : '64rem' }}>
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-8 px-4">
+          <div className="p-2 bg-white/5 rounded-lg border border-white/10">
+            <Sparkles className="w-5 h-5 text-purple-400" />
           </div>
-        ) : (
-          <div className="space-y-6">
-            {chatHistory.map((msg) => (
-              <MessageBubble 
-                key={msg.id} 
-                role={msg.role} 
-                content={msg.content} 
-                steps={msg.steps}
-              />
-            ))}
-
-            {/* Active Streaming Message */}
-            {isLoading && (
-              <MessageBubble 
-                role="agent" 
-                content={currentAnswer} // Will be undefined until done, which is fine
-                steps={currentStreamSteps}
-                isStreaming={true}
-              />
-            )}
-            
-            <div ref={messagesEndRef} />
+          <div>
+            <h1 className="text-xl font-semibold text-white">MLOps Content Agent</h1>
+            <p className="text-sm text-zinc-400">Ask about talks, speakers, and trends</p>
           </div>
-        )}
-      </div>
+        </div>
+
+        {/* Messages Area */}
+        <div className="flex-1 overflow-y-auto px-4 pb-4">
+          {chatHistory.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-zinc-500 space-y-4 opacity-50">
+              <Sparkles className="w-12 h-12" />
+              <p>Start a conversation to explore the content</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {chatHistory.map((msg) => (
+                <MessageBubble 
+                  key={msg.id} 
+                  role={msg.role} 
+                  content={msg.content} 
+                  steps={msg.steps}
+                  onShowResults={handleShowResults}
+                />
+              ))}
+
+              {/* Active Streaming Message */}
+              {isLoading && (
+                <MessageBubble 
+                  role="agent" 
+                  content={currentAnswer} // Will be undefined until done, which is fine
+                  steps={currentStreamSteps}
+                  isStreaming={true}
+                />
+              )}
+              
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+        </div>
 
       {/* Input Area */}
       <div className="mt-4 px-4">
@@ -191,5 +210,13 @@ export default function ChatContainer() {
         </div>
       </div>
     </div>
+
+    {/* Results Sidebar */}
+    <ResultsSidebar
+      isOpen={sidebarOpen}
+      onClose={() => setSidebarOpen(false)}
+      steps={sidebarSteps}
+    />
+  </>
   );
 }

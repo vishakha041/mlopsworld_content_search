@@ -1,21 +1,19 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { User, Bot, LayoutGrid, Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { StreamEvent } from '@/lib/types';
 import { StepIndicator } from './StepIndicator';
-import { ResultsModal } from './ResultsModal';
 
 interface MessageBubbleProps {
   role: 'user' | 'agent';
   content?: string;
   steps?: StreamEvent[];
   isStreaming?: boolean;
+  onShowResults?: (steps: StreamEvent[]) => void;
 }
 
-export function MessageBubble({ role, content, steps = [], isStreaming = false }: MessageBubbleProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+export function MessageBubble({ role, content, steps = [], isStreaming = false, onShowResults }: MessageBubbleProps) {
   const isUser = role === 'user';
 
   // Check if we have results to show
@@ -31,16 +29,21 @@ export function MessageBubble({ role, content, steps = [], isStreaming = false }
     return false;
   });
 
+  const handleShowResults = () => {
+    if (onShowResults && steps.length > 0) {
+      onShowResults(steps);
+    }
+  };
+
   return (
-    <>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={clsx(
-          "flex w-full gap-4 mb-8",
-          isUser ? "flex-row-reverse" : "flex-row"
-        )}
-      >
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={clsx(
+        "flex w-full gap-4 mb-8",
+        isUser ? "flex-row-reverse" : "flex-row"
+      )}
+    >
         {/* Avatar */}
         <div className={clsx(
           "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-lg",
@@ -78,7 +81,7 @@ export function MessageBubble({ role, content, steps = [], isStreaming = false }
                 <motion.button
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={handleShowResults}
                   className="mt-4 flex items-center gap-2 px-4 py-2 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 rounded-lg text-sm text-purple-300 transition-colors"
                 >
                   <LayoutGrid className="w-4 h-4" />
@@ -94,13 +97,5 @@ export function MessageBubble({ role, content, steps = [], isStreaming = false }
           )}
         </div>
       </motion.div>
-
-      {/* Results Modal */}
-      <ResultsModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        steps={steps} 
-      />
-    </>
   );
 }
