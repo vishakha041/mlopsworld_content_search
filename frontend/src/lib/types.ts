@@ -44,26 +44,23 @@ export interface VideoSearchRequest {
   include_videos?: boolean;
 }
 
-export interface VideoMetadata {
-  fps?: number;
-  duration_sec?: number;
-  frame_height?: number;
-  frame_width?: number;
-  resolution?: string;
-}
-
 export interface VideoSearchResult {
   talk_title: string;
   speaker_name: string;
   company_name?: string;
+  job_title?: string;
   category_primary?: string;
   event_name?: string;
+  track?: string;
+  abstract?: string;
   youtube_url?: string;
   youtube_id?: string;
   yt_views?: number;
+  published_date?: string;
+  tech_level?: number;
+  keywords?: string;
   distance?: number;
   similarity_score: number;
-  metadata?: VideoMetadata;
   video_blob?: string; // Base64 string or similar if returned
 }
 

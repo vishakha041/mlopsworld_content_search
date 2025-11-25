@@ -205,7 +205,7 @@ export default function ChatContainer() {
         </form>
         <div className="text-center mt-2">
           <p className="text-xs text-zinc-600">
-            Powered by Gemini 2.5 Pro & ApertureDB
+            Powered by ApertureDB, Gemini & Langgraph
           </p>
         </div>
       </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, SlidersHorizontal, Play, Clock, Eye, User, Loader2, ExternalLink } from 'lucide-react';
+import { Search, SlidersHorizontal, Play, Eye, User, Loader2, Calendar, Tag, Presentation, Building2, Youtube, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { searchVideos, API_BASE_URL } from '@/lib/api';
 import { VideoSearchResult } from '@/lib/types';
@@ -126,56 +126,7 @@ export default function VideoSearchPage() {
       {/* Results Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {results.map((video, idx) => (
-          <motion.div
-            key={idx}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.05 }}
-            className="bg-zinc-900/50 border border-white/5 rounded-2xl overflow-hidden hover:border-blue-500/30 transition-colors flex flex-col"
-          >
-            {/* Header Info */}
-            <div className="p-5 border-b border-white/5">
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <h3 className="font-medium text-lg text-white line-clamp-2">
-                  {video.talk_title}
-                </h3>
-                {video.youtube_url && (
-                  <a 
-                    href={video.youtube_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-zinc-500 hover:text-blue-400 transition-colors flex-shrink-0"
-                  >
-                    <ExternalLink className="w-5 h-5" />
-                  </a>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-y-4 text-sm">
-                <div>
-                  <div className="text-zinc-500 text-xs mb-1">Speaker</div>
-                  <div className="text-zinc-200 font-medium">{video.speaker_name}</div>
-                </div>
-                <div>
-                  <div className="text-zinc-500 text-xs mb-1">Similarity</div>
-                  <div className="text-green-400 font-medium">{Math.round(video.similarity_score * 100)}%</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Video Player */}
-            <div className="aspect-video bg-black relative mt-auto">
-               <video 
-                 controls
-                 className="w-full h-full"
-                 poster={video.youtube_url ? getYouTubeThumbnail(video.youtube_url) : undefined}
-                 preload="metadata"
-                 src={`${API_BASE_URL}/videos/stream?talk_title=${encodeURIComponent(video.talk_title)}`}
-               >
-                 Your browser does not support the video tag.
-               </video>
-            </div>
-          </motion.div>
+          <VideoCard key={idx} video={video} index={idx} />
         ))}
       </div>
 
@@ -196,4 +147,131 @@ function getYouTubeThumbnail(url: string): string | undefined {
   return (match && match[2].length === 11)
     ? `https://img.youtube.com/vi/${match[2]}/mqdefault.jpg`
     : undefined;
+}
+
+function VideoCard({ video, index }: { video: VideoSearchResult; index: number }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      className="bg-zinc-900/50 border border-white/5 rounded-2xl overflow-hidden hover:border-blue-500/30 transition-colors flex flex-col"
+    >
+      {/* Video Player / Thumbnail */}
+      <div className="aspect-video bg-black relative group">
+        <video 
+          controls
+          className="w-full h-full"
+          poster={video.youtube_url ? getYouTubeThumbnail(video.youtube_url) : undefined}
+          preload="metadata"
+          src={`${API_BASE_URL}/videos/stream?talk_title=${encodeURIComponent(video.talk_title)}`}
+        >
+          Your browser does not support the video tag.
+        </video>
+        
+        {/* YouTube Link Overlay */}
+        {video.youtube_url && (
+          <a 
+            href={video.youtube_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute top-3 right-3 p-2 bg-black/60 hover:bg-red-600 rounded-lg transition-colors group/yt"
+            title="Watch on YouTube"
+          >
+            <Youtube className="w-4 h-4 text-white" />
+          </a>
+        )}
+        
+        {/* Similarity Badge */}
+        <div className="absolute top-3 left-3 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-lg text-xs font-medium text-green-400">
+          {Math.round(video.similarity_score * 100)}% match
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-4 flex-1 flex flex-col">
+        {/* Title */}
+        <h3 className="font-medium text-white line-clamp-2 mb-3">
+          {video.talk_title}
+        </h3>
+
+        {/* Speaker & Company */}
+        <div className="flex items-center gap-2 text-sm text-zinc-300 mb-2">
+          <User className="w-3.5 h-3.5 text-zinc-500" />
+          <span className="truncate">{video.speaker_name}</span>
+          {video.company_name && (
+            <>
+              <span className="text-zinc-600">•</span>
+              <Building2 className="w-3.5 h-3.5 text-zinc-500" />
+              <span className="truncate text-zinc-400">{video.company_name}</span>
+            </>
+          )}
+        </div>
+
+        {/* Event & Category */}
+        <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-400 mb-3">
+          {video.event_name && (
+            <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded">
+              <Presentation className="w-3 h-3" />
+              <span>{video.event_name}</span>
+            </div>
+          )}
+          {video.category_primary && (
+            <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded">
+              <Tag className="w-3 h-3" />
+              <span>{video.category_primary}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Stats Row */}
+        <div className="flex items-center gap-4 text-xs text-zinc-500 mb-3">
+          {video.yt_views !== undefined && video.yt_views !== null && (
+            <div className="flex items-center gap-1">
+              <Eye className="w-3 h-3" />
+              <span>{video.yt_views.toLocaleString()} views</span>
+            </div>
+          )}
+          {video.published_date && (
+            <div className="flex items-center gap-1">
+              <Calendar className="w-3 h-3" />
+              <span>{video.published_date}</span>
+            </div>
+          )}
+          {video.tech_level && (
+            <div className="flex items-center gap-1">
+              <span className="text-purple-400">Level {video.tech_level}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Abstract (Expandable) */}
+        {video.abstract && (
+          <div className="mt-auto">
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300 transition-colors mb-2"
+            >
+              {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              {expanded ? 'Hide abstract' : 'Show abstract'}
+            </button>
+            <AnimatePresence>
+              {expanded && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="text-xs text-zinc-400 leading-relaxed overflow-hidden"
+                >
+                  {video.abstract}
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
 }

@@ -278,28 +278,24 @@ class UniqueValuesResponse(BaseModel):
 
 # ===== Video Response =====
 
-class VideoMetadata(BaseModel):
-    """Video metadata"""
-    fps: Optional[float] = None
-    duration_sec: Optional[int] = None
-    resolution: Optional[str] = None
-    frame_height: Optional[int] = None
-    frame_width: Optional[int] = None
-
-
 class VideoSearchResult(BaseModel):
-    """Video search result"""
+    """Video search result with Talk metadata"""
     talk_title: str
     speaker_name: str
     company_name: Optional[str] = None
+    job_title: Optional[str] = None
     category_primary: Optional[str] = None
     event_name: Optional[str] = None
+    track: Optional[str] = None
+    abstract: Optional[str] = None
     youtube_url: Optional[str] = None
     youtube_id: Optional[str] = None
     yt_views: Optional[int] = None
+    published_date: Optional[str] = None
+    tech_level: Optional[int] = None
+    keywords: Optional[str] = None
     distance: Optional[float] = None
     similarity_score: float
-    metadata: Optional[Dict[str, Any]] = None
     video_blob: Optional[bytes] = Field(default=None, description="Video binary data (if requested)")
 
 

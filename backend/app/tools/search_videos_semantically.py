@@ -102,7 +102,7 @@ def search_videos_semantically(
         search_q = [
             {
                 "FindDescriptor": {
-                    "_ref": 2,
+                    "_ref": 1,
                     "set": VIDEO_DESCRIPTOR_SET,
                     "k_neighbors": top_n,
                     "metric": "L2",
@@ -111,8 +111,9 @@ def search_videos_semantically(
             },
             {
                 "FindVideo": {
-                    "is_connected_to": {"ref": 2},
-                    "results": {"all_properties": True},
+                    "_ref": 2,
+                    "is_connected_to": {"ref": 1},
+                    "results": {"list": ["talk_title", "_uniqueid"]},
                     "blobs": return_blobs
                 }
             }
@@ -135,31 +136,82 @@ def search_videos_semantically(
         descriptor_entities = search_results[0]["FindDescriptor"]["entities"]
         distances = [entity["_distance"] for entity in descriptor_entities]
         
-        # 4. Build results with metadata
+        # 4. For each video, query its connected Talk entity individually
+        # Log distance range for debugging
+        if distances:
+            logging.info(f"L2 distance range: min={min(distances):.4f}, max={max(distances):.4f}")
+        
         results = []
-        for i, entity in enumerate(video_entities):
+        for i, video_entity in enumerate(video_entities):
             distance = distances[i]
-            # Calculate similarity score (inverse of distance, normalized)
-            similarity = max(0, 1 - (distance / 10))  # Rough normalization
+            # Calculate similarity score from L2 distance
+            # For normalized embeddings: L2² = 2(1 - cosine_sim)
+            # So: cosine_sim = 1 - (L2² / 2)
+            # This gives proper 0-100% range for normalized vectors
+            similarity = max(0, min(1, 1 - (distance ** 2) / 2))
+            
+            video_title = video_entity.get("talk_title", "N/A")
+            video_uid = video_entity.get("_uniqueid")
+            
+            # Query the connected Talk entity for this specific video
+            talk_data = {}
+            if video_uid:
+                talk_query = [
+                    {
+                        "FindVideo": {
+                            "_ref": 1,
+                            "constraints": {"_uniqueid": ["==", video_uid]}
+                        }
+                    },
+                    {
+                        "FindEntity": {
+                            "with_class": "Talk",
+                            "is_connected_to": {
+                                "ref": 1,
+                                "direction": "out",
+                                "connection_class": "BELONGS_TO_TALK"
+                            },
+                            "results": {
+                                "list": [
+                                    "talk_id", "talk_title", "speaker_name", "company_name",
+                                    "event_name", "category_primary", "track", "abstract",
+                                    "youtube_url", "youtube_id", "yt_views", "yt_published_at",
+                                    "tech_level", "keywords_csv", "job_title"
+                                ]
+                            }
+                        }
+                    }
+                ]
+                try:
+                    talk_resp, _ = client.query(talk_query)
+                    talk_entities = talk_resp[1].get("FindEntity", {}).get("entities", [])
+                    if talk_entities:
+                        talk_data = talk_entities[0]
+                except Exception as e:
+                    logging.warning(f"Failed to get Talk for video {video_uid}: {e}")
+            
+            # Format publish date
+            pub_date = talk_data.get("yt_published_at")
+            if pub_date and isinstance(pub_date, dict) and "_date" in pub_date:
+                pub_date = pub_date["_date"].split("T")[0]
             
             result = {
-                "talk_title": entity.get("talk_title", "N/A"),
-                "speaker_name": entity.get("speaker_name", "Unknown"),
-                "company_name": entity.get("company_name", ""),
-                "event_name": entity.get("event_name", ""),
-                "category_primary": entity.get("category_primary", ""),
-                "youtube_url": entity.get("youtube_url", ""),
-                "youtube_id": entity.get("youtube_id", ""),
-                "yt_views": entity.get("yt_views", 0),
+                "talk_title": talk_data.get("talk_title") or video_title,
+                "speaker_name": talk_data.get("speaker_name", "Unknown"),
+                "company_name": talk_data.get("company_name", ""),
+                "job_title": talk_data.get("job_title", ""),
+                "event_name": talk_data.get("event_name", ""),
+                "category_primary": talk_data.get("category_primary", ""),
+                "track": talk_data.get("track", ""),
+                "abstract": talk_data.get("abstract", ""),
+                "youtube_url": talk_data.get("youtube_url", ""),
+                "youtube_id": talk_data.get("youtube_id", ""),
+                "yt_views": talk_data.get("yt_views", 0),
+                "published_date": pub_date,
+                "tech_level": talk_data.get("tech_level"),
+                "keywords": talk_data.get("keywords_csv", ""),
                 "distance": round(distance, 4),
                 "similarity_score": round(similarity, 3),
-                "metadata": {
-                    "fps": entity.get("_fps", 0),
-                    "frame_count": entity.get("_frame_count", 0),
-                    "frame_height": entity.get("_frame_height", 0),
-                    "frame_width": entity.get("_frame_width", 0),
-                    "duration_seconds": entity.get("_frame_count", 0) / entity.get("_fps", 1) if entity.get("_fps") else 0
-                }
             }
             
             # Add video blob if requested

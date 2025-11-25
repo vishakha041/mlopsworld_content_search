@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MessageSquare, Video, Aperture } from 'lucide-react';
+import { MessageSquare, Video, Aperture, Github } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
 
@@ -30,7 +30,7 @@ export function Navigation() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-8 w-full px-4">
+      <div className="flex flex-col gap-8 w-full px-4 flex-1">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -64,6 +64,25 @@ export function Navigation() {
             </Link>
           );
         })}
+      </div>
+
+      {/* GitHub Link at Bottom */}
+      <div className="mt-auto px-4 w-full">
+        <a
+          href="https://github.com/Ayesha-Imr/mlopsworld_content_search"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="relative group flex items-center justify-center w-full aspect-square"
+        >
+          <div className="text-zinc-500 group-hover:text-white transition-colors duration-200">
+            <Github className="w-5 h-5" />
+          </div>
+          
+          {/* Tooltip */}
+          <div className="absolute left-full ml-4 px-2 py-1 bg-zinc-900 border border-white/10 rounded text-xs text-zinc-300 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+            View on GitHub
+          </div>
+        </a>
       </div>
     </nav>
   );
