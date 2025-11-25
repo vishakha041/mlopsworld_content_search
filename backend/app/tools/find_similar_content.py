@@ -233,7 +233,7 @@ def find_similar_content(
                     },
                     "results": {
                         "list": ["talk_id","talk_title","speaker_name","youtube_url",
-                                 "category_primary","yt_views","abstract"]
+                                 "category_primary","yt_views","abstract","yt_published_at"]
                     }
                 }
             })
@@ -284,6 +284,11 @@ def find_similar_content(
                 if min_similarity is not None and similarity_score < float(min_similarity):
                     continue
 
+                # Format publish date
+                pub_date = safe_get(t, "yt_published_at")
+                if pub_date and isinstance(pub_date, dict) and "_date" in pub_date:
+                    pub_date = pub_date["_date"].split("T")[0]
+
                 all_similar_talks.append({
                     "talk_id": talk_id,
                     "title": safe_get(t, "talk_title"),
@@ -291,6 +296,7 @@ def find_similar_content(
                     "youtube_url": safe_get(t, "youtube_url"),
                     "category": safe_get(t, "category_primary"),
                     "views": safe_get(t, "yt_views", 0),
+                    "published_date": pub_date,
                     "similarity_score": similarity_score,
                     "similarity_type": "content",
                     "similarity_reason": f"Similar content themes (score: {similarity_score})",

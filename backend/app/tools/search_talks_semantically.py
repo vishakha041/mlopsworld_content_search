@@ -154,7 +154,7 @@ def search_talks_semantically(
                     {"FindEntity": {
                         "with_class": "Talk",
                         "is_connected_to": {"ref": 3, "connection_class": connection_class},
-                        "results": {"list": ["talk_id","talk_title","speaker_name","youtube_url","event_name","category_primary"]}
+                        "results": {"list": ["talk_id","talk_title","speaker_name","youtube_url","event_name","category_primary","yt_published_at","yt_views"]}
                     }}
                 ]
             else:
@@ -186,7 +186,7 @@ def search_talks_semantically(
                         {"FindEntity": {
                             "with_class": "Talk",
                             "is_connected_to": {"ref": 2, "connection_class": connection_class},
-                            "results": {"list": ["talk_id","talk_title","speaker_name","youtube_url","event_name","category_primary"]}
+                            "results": {"list": ["talk_id","talk_title","speaker_name","youtube_url","event_name","category_primary","yt_published_at","yt_views"]}
                         }}
                     ]
                 else:
@@ -199,7 +199,7 @@ def search_talks_semantically(
                         {"FindEntity": {
                             "with_class": "Talk",
                             "is_connected_to": {"ref": 1, "connection_class": connection_class},
-                            "results": {"list": ["talk_id","talk_title","speaker_name","youtube_url","event_name","category_primary"]}
+                            "results": {"list": ["talk_id","talk_title","speaker_name","youtube_url","event_name","category_primary","yt_published_at","yt_views"]}
                         }}
                     ]
 
@@ -245,6 +245,11 @@ def search_talks_semantically(
                     matching_text = safe_get(d, "bio_text", "")
                     context_info = "From speaker bio"
 
+                # Format publish date
+                pub_date = safe_get(talk_info, "yt_published_at")
+                if pub_date and isinstance(pub_date, dict) and "_date" in pub_date:
+                    pub_date = pub_date["_date"].split("T")[0]
+
                 all_results.append({
                     "talk_id": talk_id,
                     "title": safe_get(talk_info, "talk_title"),
@@ -252,6 +257,8 @@ def search_talks_semantically(
                     "youtube_url": safe_get(talk_info, "youtube_url"),
                     "event": safe_get(talk_info, "event_name"),
                     "category": safe_get(talk_info, "category_primary"),
+                    "views": safe_get(talk_info, "yt_views", 0),
+                    "published_date": pub_date,
                     "similarity_score": round(similarity, 3),
                     "matching_text": (matching_text[:300] + "...") if len(matching_text) > 300 else matching_text,
                     "content_type": content_type,

@@ -127,6 +127,8 @@ class SemanticSearchResult(BaseModel):
     youtube_url: Optional[str] = None
     event: Optional[str] = None
     category: Optional[str] = None
+    views: Optional[int] = None
+    published_date: Optional[str] = None
     similarity_score: float = Field(description="Similarity score (0-1)")
     matching_text: Optional[str] = Field(default=None, description="Matching text snippet")
     content_type: str = Field(description="Content type (transcript/meta/bio)")
