@@ -2,9 +2,11 @@
 __pycache__/
 *.py[cod]
 *.so
+.pytest_cache
 
 # Virtual environments
 .venv/
+venv/
 .env/
 .env
 
@@ -21,5 +23,6 @@ __pycache__/
 *.db
 
 .github/
+.claude/
 
 docs/

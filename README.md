@@ -2,8 +2,9 @@
 
 > **An AI-powered semantic search and analysis platform for MLOps conference talks, built with ApertureDB, LangGraph, and Gemini 2.5 Pro**
 
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Streamlit-FF4B4B?style=for-the-badge)](https://adb-query-agent.streamlit.app/)
 [![Built with](https://img.shields.io/badge/Built_with-ApertureDB-00A8E8?style=for-the-badge)](https://www.aperturedata.io/)
+[![Backend](https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge)](https://fastapi.tiangolo.com/)
+[![Frontend](https://img.shields.io/badge/Frontend-Next.js-black?style=for-the-badge)](https://nextjs.org/)
 [![Framework](https://img.shields.io/badge/Framework-LangChain-green?style=for-the-badge)](https://www.langchain.com/langgraph)
 
 ---
@@ -16,7 +17,8 @@ This project demonstrates the power of combining **multi-modal AI-native databas
 - **ApertureDB**: Multi-modal database for storing talks, transcripts, videos, and embeddings
 - **LangGraph**: ReAct agent framework for intelligent query orchestration
 - **Gemini 2.5 Pro**: LLM for natural language understanding and reasoning
-- **Streamlit**: Interactive web interface
+- **FastAPI**: High-performance backend API
+- **Next.js**: Modern React-based frontend interface
 - **Twelve Labs Marengo**: Video embeddings for semantic video search
 
 ---
@@ -77,6 +79,14 @@ Descriptor Sets (Vector Indexes):
   └── marengo_2_7 (1024-dim, video embeddings)
 ```
 
+### Backend Layer (FastAPI)
+
+**Core Components**:
+- **API Routes**: RESTful endpoints for agent queries, semantic search, and analytics
+- **Middleware**: Authentication, CORS, and error handling
+- **Dependency Injection**: Efficient resource management (DB connections, models)
+- **Streaming**: Server-Sent Events (SSE) for real-time agent feedback
+
 ### Agent Layer (LangGraph)
 
 **7 Comprehensive Tools**:
@@ -87,7 +97,7 @@ Descriptor Sets (Vector Indexes):
 5. `find_similar_content` - Content recommendation engine
 6. `analyze_topics_and_trends` - Trend analysis (tools, topics, technologies)
 7. `get_unique_values` - Discover available values (events, categories, tracks)
-8. `search_videos_semantically` - Semantic video search (visual + audio) (This isn't provided to the agent as a tool, but is available separately to manually search videos semantically)
+8. `search_videos_semantically` - Semantic video search (visual + audio) (Available via dedicated endpoint)
 
 **Agent Design**:
 - **Pattern**: ReAct (Reasoning + Acting) using LangGraph's `create_react_agent`
@@ -95,20 +105,16 @@ Descriptor Sets (Vector Indexes):
 - **Prompt**: Comprehensive system prompt with 14 few-shot examples demonstrating tool usage
 - **Behavior**: Autonomously selects and chains tools based on user queries
 
-### Frontend Layer (Streamlit)
+### Frontend Layer (Next.js)
 
-**Multi-page Application**:
-- **Main Page**: 
-  - Chat with Agent (natural language interface)
-  - Video Semantic Search (direct video search)
-- **Video Browser Page**: Browse and watch all conference videos
-
-**UI Features**:
-- Real-time agent execution visibility
-- Curated example queries across 4 categories
-- Results sidebar with YouTube thumbnails
-- Video players with fallback options
-- Session-level connection pooling for performance
+**Modern Web Application**:
+- **Framework**: Next.js 16 (App Router)
+- **Styling**: Tailwind CSS v4 + Framer Motion
+- **Components**:
+  - **Chat Interface**: Real-time interaction with the agent
+  - **Video Search**: Dedicated semantic video search page
+  - **Results Visualization**: Rich cards with YouTube thumbnails and metadata
+- **Streaming**: Consumes SSE from backend for "Chain of Thought" visualization
 
 ---
 
@@ -210,22 +216,23 @@ Created a **comprehensive 500+ line system prompt** including:
 - Connected all 7 tools to the agent
 - Implemented streaming for real-time execution visibility
 
-### Phase 5: UI Development (`streamlit_app.py` + `ui/`)
+### Phase 5: Backend API Development (FastAPI)
 
-Built a clean, modular Streamlit interface with:
-- **Frontend/Backend Separation**: UI layer has zero database logic
-- **Session Management**: Connection pooling for performance
-- **Real-time Feedback**: Dynamic status messages during agent execution
-- **Results Presentation**: Sidebar cards with YouTube thumbnails
-- **Video Integration**: In-app video players with fallback options
+Migrated the core logic to a robust REST API:
+- **Framework**: FastAPI for high performance and auto-documentation
+- **Structure**: Modular architecture with separate routes, models, and services
+- **Streaming**: Implemented Server-Sent Events (SSE) to stream agent thoughts and answers
+- **Validation**: Pydantic models ensure type safety for all inputs and outputs
 
-### Phase 6: Video Search Integration
+### Phase 6: Frontend Development (Next.js)
 
-Extended the system with semantic video search:
-- Added Twelve Labs client integration
-- Created `search_videos_semantically` tool
-- Built dedicated video search UI tab
-- Enables queries like "find talks with live coding demos" (visual understanding)
+Built a modern, responsive user interface:
+- **Tech Stack**: Next.js 16, Tailwind CSS, Framer Motion
+- **Features**:
+  - Chat interface with "Chain of Thought" visualization
+  - Dedicated video search page
+  - Responsive design for all devices
+- **Integration**: Consumes the FastAPI backend via typed API clients
 
 ---
 
@@ -233,21 +240,30 @@ Extended the system with semantic video search:
 
 ### Chat with Agent
 Natural language interface for querying the database:
-- 8 curated example queries across 4 categories
-- Real-time agent execution visibility
-- Results displayed with YouTube links and metadata
+- **Chain of Thought**: Visualizes the agent's reasoning process and tool usage in real-time
+- **Rich Results**: Displays structured data (talks, speakers) in interactive cards
+- **Example Queries**: One-click access to curated questions
 
 ### Video Semantic Search
-Direct video search using Twelve Labs embeddings:
-- Understands visual + audio content
-- Searches beyond what's said (presentation style, visuals, demos)
-- Configurable results with optional video players
+Dedicated page for searching video content:
+- **Visual & Audio Search**: Finds moments based on visual cues (e.g., "live coding", "whiteboard")
+- **Direct Playback**: Watch specific segments directly in the browser
+- **Metadata Display**: Shows relevance scores and video details
 
-### Video Browser
-Browse and watch all 280 conference talks:
-- Searchable dropdown by talk title
-- Video metadata (FPS, duration, resolution)
-- HTML5 video player with controls
+---
+
+## API Endpoints
+
+The backend exposes a comprehensive REST API. Key endpoints include:
+
+- **Agent**: `POST /api/v1/query` - Streamed agent interaction
+- **Talks**:
+  - `POST /api/v1/talks/search` - Semantic search
+  - `POST /api/v1/talks/filter` - Metadata filtering
+  - `POST /api/v1/talks/details` - Get talk details
+- **Videos**: `POST /api/v1/videos/search` - Semantic video search
+- **Speakers**: `POST /api/v1/speakers/analyze` - Speaker analytics
+- **Trends**: `POST /api/v1/trends/analyze` - Topic and trend analysis
 
 ---
 
@@ -340,32 +356,22 @@ Database (ApertureDB)  → Data storage, vector search
 
 ```
 .
-├── agent/                      # LangGraph agent implementation
-│   ├── agent.py               # ReAct agent with Gemini 2.5 Pro
-│   ├── config.py              # Model settings, API keys
-│   └── prompt.py              # System prompt + few-shot examples
+├── backend/                    # FastAPI Backend
+│   ├── app/
+│   │   ├── agent/             # LangGraph agent implementation
+│   │   ├── api/               # REST API routes and models
+│   │   ├── tools/             # ApertureDB query tools
+│   │   ├── main.py            # App entry point
+│   │   └── config.py          # Configuration
+│   └── requirements.txt
 │
-├── tools/                      # 8 comprehensive query tools
-│   ├── search_talks_by_filters.py
-│   ├── search_talks_semantically.py
-│   ├── analyze_speaker_activity.py
-│   ├── get_talk_details.py
-│   ├── find_similar_content.py
-│   ├── analyze_topics_and_trends.py
-│   ├── get_unique_values.py
-│   ├── search_videos_semantically.py
-│   └── utils.py               # Shared utilities
-│
-├── ui/                         # Streamlit UI components
-│   ├── components.py          # Chat interface, agent display
-│   ├── state.py               # Session state management
-│   ├── sidebar.py             # Results display
-│   ├── video_search.py        # Video search tab
-│   ├── examples.py            # Curated example queries
-│   └── styles.py              # Custom CSS
-│
-├── pages/                      # Streamlit multi-page app
-│   └── 1_🎥_Video_Browser.py  # Video browsing page
+├── frontend/                   # Next.js Frontend
+│   ├── src/
+│   │   ├── app/               # App Router pages
+│   │   ├── components/        # React components
+│   │   ├── hooks/             # Custom hooks (useAgentStream)
+│   │   └── lib/               # Utilities
+│   └── package.json
 │
 ├── notebooks/                  # Development notebooks
 │   ├── data_clean_adb.ipynb   # Data cleaning
@@ -375,12 +381,6 @@ Database (ApertureDB)  → Data storage, vector search
 │   └── mlops_adb_queries.ipynb      # Query testing
 │
 ├── data/                       # Dataset files
-│   └── mlops-events-enriched.csv
-│
-│
-├── streamlit_app.py           # Main Streamlit entry point
-├── app.py                     # CLI interface
-├── requirements.txt           # Python dependencies
 └── README.md                  # This file
 ```
 
@@ -389,20 +389,22 @@ Database (ApertureDB)  → Data storage, vector search
 ## Technology Stack
 
 ### Backend
+- **FastAPI**: Web framework
 - **ApertureDB**: Multi-modal database with vector search
 - **LangGraph**: Agent orchestration framework
-- **LangChain**: Tool integration and abstractions
 - **Gemini 2.5 Pro**: LLM for reasoning and NLU
 - **Sentence Transformers**: Text embeddings (`embeddinggemma-300m`)
 - **Twelve Labs**: Video embeddings (Marengo-retrieval-2.7)
 
 ### Frontend
-- **Streamlit**: Web application framework
-- **Python 3.11+**: Core language
+- **Next.js 16**: React framework
+- **Tailwind CSS**: Styling
+- **Framer Motion**: Animations
+- **TypeScript**: Type safety
 
 ### Infrastructure
-- **Streamlit Cloud**: Hosting and deployment
-- **Environment Management**: `.env` + Streamlit secrets
+- **Environment Management**: `.env` files
+- **Docker** (Optional): Containerization support
 
 ---
 
