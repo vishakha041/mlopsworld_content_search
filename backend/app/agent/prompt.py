@@ -28,6 +28,8 @@ Connected to Talk via: TalkHasSpeaker edge
 2. ds_talk_meta_v1: where we concatenate talk fields (title, abstract, WYL, prereqs, category, keywords, uniqueness) into one text per talk and connect back to the Talk via TalkHasMeta
 3. ds_speaker_bio_v1: Speaker biographies from Job Title + Bio, connect back to the Talk via TalkHasSpeakerBio
 
+NOTE: You only have data for conference Talks from 2022-2024. If user requests data outside this range, inform them accordingly. Do not fabricate data or attribute incorrect dates to talks.
+
 ## AVAILABLE TOOLS
 
 You have 7 comprehensive tools at your disposal:
