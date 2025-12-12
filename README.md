@@ -1,4 +1,4 @@
-# 🤖 MLOps Events Agent
+# MLOps Events Agent
 
 > **An AI-powered semantic search and analysis platform for MLOps conference talks, built with ApertureDB, LangGraph, and Gemini 2.5 Pro**
 
@@ -9,7 +9,7 @@
 
 ---
 
-## 📖 Overview
+## Overview
 
 This project demonstrates the power of combining **multi-modal AI-native databases** with **agentic AI systems** to create an intelligent search and analysis platform. Built on MLOps Conference talks, the system enables natural language queries, semantic search across text and video content, speaker analytics, and trend analysis.
 
@@ -153,6 +153,9 @@ Descriptor Sets (Vector Indexes):
 - Stored embeddings in `marengo_2_7` descriptor set
 - Ingested video blobs into ApertureDB Video entities
 
+#### Note:
+The current app uses the [cloud version](https://docs.aperturedata.io/Setup/server/Cloud) of ApertureDB. However, ApertureDB also provides a [community version](https://docs.aperturedata.io/Setup/server/Local) which can be run through Docker for local development and testing, and can be hosted on-premises.
+
 ### Phase 2: Query Development (`mlops_adb_queries.ipynb`)
 
 Systematically tested various query patterns:
@@ -289,7 +292,7 @@ Agent can autonomously:
 
 ---
 
-## 📊Dataset Statistics
+## Dataset Statistics
 
 - **Total Talks**: 280 unique conference presentations
 - **Events**: MLOps World, GenAI World (2023-2024)
@@ -325,7 +328,7 @@ Agent can autonomously:
 
 ---
 
-## 🏛️ Architecture Principles
+## Architecture Principles
 
 ### Clean Separation of Concerns
 ```
@@ -352,7 +355,7 @@ Database (ApertureDB)  → Data storage, vector search
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 .
