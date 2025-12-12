@@ -104,6 +104,7 @@ Descriptor Sets (Vector Indexes):
 - **Model**: Gemini 2.5 Pro (temperature=0.7)
 - **Prompt**: Comprehensive system prompt with 14 few-shot examples demonstrating tool usage
 - **Behavior**: Autonomously selects and chains tools based on user queries
+- **Short-term conversation history**: Session-scoped, in-memory conversation history is supported (configurable via `MAX_CONVERSATION_HISTORY`, default 10). The frontend can pass an optional `session_id` with each request; the backend uses this as the agent `thread_id`.
 
 ### Frontend Layer (Next.js)
 

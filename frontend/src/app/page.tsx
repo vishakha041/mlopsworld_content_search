@@ -22,7 +22,7 @@ export default function ChatContainer() {
   const [showExamples, setShowExamples] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarSteps, setSidebarSteps] = useState<StreamEvent[]>([]);
-  const { messages: streamMessages, isLoading, streamAgent, reset } = useAgentStream();
+  const { messages: streamMessages, isLoading, sessionId, streamAgent, reset, newConversation } = useAgentStream();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -98,14 +98,28 @@ export default function ChatContainer() {
     <>
       <div className={`flex flex-col h-screen mx-auto px-4 pt-8 pb-4 transition-all duration-300 ${sidebarOpen ? 'mr-96' : ''}`} style={{ maxWidth: sidebarOpen ? 'calc(100% - 24rem)' : '64rem' }}>
         {/* Header */}
-        <div className="flex items-center gap-3 mb-8 px-4">
-          <div className="p-2 bg-white/5 rounded-lg border border-white/10">
-            <Sparkles className="w-5 h-5 text-purple-400" />
+        <div className="flex items-center justify-between mb-8 px-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white/5 rounded-lg border border-white/10">
+              <Sparkles className="w-5 h-5 text-purple-400" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold text-white">MLOps Content Agent</h1>
+              <p className="text-sm text-zinc-400">Ask about talks, speakers, and trends</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-semibold text-white">MLOps Content Agent</h1>
-            <p className="text-sm text-zinc-400">Ask about talks, speakers, and trends</p>
-          </div>
+          {chatHistory.length > 0 && (
+            <button
+              onClick={() => {
+                newConversation();
+                setChatHistory([]);
+                setShowExamples(true);
+              }}
+              className="px-4 py-2 text-sm bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white rounded-lg border border-white/10 transition-colors"
+            >
+              New Conversation
+            </button>
+          )}
         </div>
 
         {/* Messages Area */}

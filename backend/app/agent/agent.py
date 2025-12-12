@@ -7,6 +7,10 @@ using 7 comprehensive tools.
 from typing import Dict, Any
 from langchain.agents import create_agent
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langgraph.checkpoint.memory import InMemorySaver
+from langchain_core.messages import trim_messages
+from langchain.agents.middleware import before_model
+from langgraph.runtime import Runtime
 
 # Import all tools from the tools module
 from app.tools.tools import (
@@ -27,8 +31,19 @@ from app.agent.config import (
     MODEL_NAME,
     MODEL_TEMPERATURE,
     MAX_ITERATIONS,
-    GOOGLE_API_KEY
+    GOOGLE_API_KEY,
+    MAX_CONVERSATION_HISTORY
 )
+
+# Global checkpointer instance (reused across invocations)
+_checkpointer = None
+
+def get_checkpointer():
+    """Get or create the global InMemorySaver checkpointer."""
+    global _checkpointer
+    if _checkpointer is None:
+        _checkpointer = InMemorySaver()
+    return _checkpointer
 
 
 def create_mlops_agent():
@@ -74,12 +89,25 @@ def create_mlops_agent():
     system_prompt = get_system_prompt()
     print(f"System prompt loaded ({len(system_prompt)} characters)")
     
-    # 4. Create agent using create_agent
-    print("Creating LangChain agent...")
+    # 4. Define message trimming middleware using before_model decorator
+    @before_model
+    def trim_message_history(state, runtime: Runtime):
+        """Trim conversation history to last N messages before calling model."""
+        messages = state.get("messages", [])
+        if len(messages) > MAX_CONVERSATION_HISTORY:
+            # Keep last N messages
+            trimmed = messages[-MAX_CONVERSATION_HISTORY:]
+            return {"messages": trimmed}
+        return None  # No changes needed
+    
+    # 5. Create agent using create_agent with checkpointer and middleware
+    print("Creating LangChain agent with conversation history...")
     agent = create_agent(
         model=model,
         tools=tools,
         system_prompt=system_prompt,
+        checkpointer=get_checkpointer(),
+        middleware=[trim_message_history],
     )
     
     print("Agent created successfully!\n")
@@ -88,7 +116,8 @@ def create_mlops_agent():
 
 def query_agent(
     user_query: str,
-    verbose: bool = True
+    verbose: bool = True,
+    thread_id: str = "default"
 ) -> Dict[str, Any]:
     """
     Query the agent with a user question.
@@ -122,12 +151,15 @@ def query_agent(
     # Prepare input
     inputs = {"messages": [{"role": "user", "content": user_query}]}
     
+    # Configure with thread_id for conversation history
+    config = {"configurable": {"thread_id": thread_id}}
+    
     # Stream the agent's execution to see each step
     step_count = 0
     final_response = None
     
     try:
-        for event in agent.stream(inputs, stream_mode="values"):
+        for event in agent.stream(inputs, config, stream_mode="values"):
             step_count += 1
             
             if verbose:
