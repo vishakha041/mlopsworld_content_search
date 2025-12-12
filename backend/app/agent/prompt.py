@@ -1,5 +1,5 @@
 """
-LangGraph Agent System Prompt for MLOps Events Database Query Assistant
+System Prompt for MLOps Events Database Query Assistant
 
 This module contains the comprehensive few-shot prompt for the LangGraph agent
 that helps users query and analyze the MLOps Events dataset stored in ApertureDB.

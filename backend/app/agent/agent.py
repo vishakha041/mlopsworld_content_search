@@ -1,19 +1,11 @@
 """
-Minimal LangGraph ReAct Agent for MLOps Events Database
-
-This module implements a simple ReAct agent using LangGraph's prebuilt
-create_react_agent function. The agent can query and analyze the MLOps
-Events dataset stored in ApertureDB using 6 comprehensive tools.
-
-Key Features:
-- Uses Gemini 2.5 Pro for reasoning
-- No conversation memory (stateless)
-- Comprehensive debugging output
-- Simple, beginner-friendly implementation
+This module implements a ReAct agent using LangChain's create_agent function.
+The agent can query and analyze the MLOps Events dataset stored in ApertureDB
+using 7 comprehensive tools.
 """
 
 from typing import Dict, Any
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 # Import all tools from the tools module
@@ -43,18 +35,18 @@ def create_mlops_agent():
     """
     Create a ReAct agent for querying MLOps events database.
     
-    This function creates a simple agent using LangGraph's prebuilt
-    create_react_agent. The agent automatically:
+    This function creates a simple agent using LangChain's create_agent.
+    The agent automatically:
     - Decides which tool(s) to use based on user query
     - Executes the selected tool(s)
     - Reasons about the results
     - Provides a natural language response
     
     Returns:
-        CompiledGraph: Compiled LangGraph agent ready for invocation
+        CompiledGraph: Compiled agent ready for invocation
     """
     # 1. Initialize the Gemini 2.5 Pro model
-    print("🔧 Initializing Gemini 2.5 Pro model...")
+    print("Initializing Gemini 2.5 Pro model...")
     model = ChatGoogleGenerativeAI(
         model=MODEL_NAME,
         temperature=MODEL_TEMPERATURE,
@@ -72,7 +64,7 @@ def create_mlops_agent():
         get_unique_values
     ]
     
-    print(f"🛠️  Loaded {len(tools)} tools:")
+    print(f"Loaded {len(tools)} tools:")
     for tool in tools:
         tname = getattr(tool, "name", getattr(tool, "__name__", str(tool)))
         tdesc = getattr(tool, "description", getattr(tool, "__doc__", "")) or ""
@@ -80,17 +72,17 @@ def create_mlops_agent():
 
     # 3. Get system prompt
     system_prompt = get_system_prompt()
-    print(f"📝 System prompt loaded ({len(system_prompt)} characters)")
+    print(f"System prompt loaded ({len(system_prompt)} characters)")
     
-    # 4. Create agent using prebuilt function
-    print("🤖 Creating LangGraph ReAct agent...")
-    agent = create_react_agent(
+    # 4. Create agent using create_agent
+    print("Creating LangChain agent...")
+    agent = create_agent(
         model=model,
         tools=tools,
-        prompt=system_prompt,  # System instructions
+        system_prompt=system_prompt,
     )
     
-    print("✅ Agent created successfully!\n")
+    print("Agent created successfully!\n")
     return agent
 
 
@@ -120,11 +112,11 @@ def query_agent(
     
     if verbose:
         print("=" * 80)
-        print("🙋 USER QUERY")
+        print("USER QUERY")
         print("=" * 80)
         print(f"{user_query}\n")
         print("=" * 80)
-        print("🤖 AGENT EXECUTION")
+        print("AGENT EXECUTION")
         print("=" * 80)
     
     # Prepare input
@@ -140,7 +132,7 @@ def query_agent(
             
             if verbose:
                 print(f"\n{'─' * 80}")
-                print(f"📍 STEP {step_count}")
+                print(f"STEP {step_count}")
                 print(f"{'─' * 80}")
             
             # Get the last message in the current state
@@ -154,11 +146,11 @@ def query_agent(
             if hasattr(last_message, 'content'):
                 # AI Message or Human Message
                 if verbose:
-                    print(f"💬 Message Type: {type(last_message).__name__}")
+                    print(f"Message Type: {type(last_message).__name__}")
                     
                 # Check for tool calls
                 if hasattr(last_message, 'tool_calls') and last_message.tool_calls:
-                    print(f"\n🔧 TOOL CALLS ({len(last_message.tool_calls)}):")
+                    print(f"\nTOOL CALLS ({len(last_message.tool_calls)}):")
                     for i, tool_call in enumerate(last_message.tool_calls, 1):
                         print(f"\n   Tool #{i}: {tool_call['name']}")
                         print(f"   Arguments:")
@@ -174,7 +166,7 @@ def query_agent(
                 if last_message.content:
                     content = last_message.content
                     if verbose and len(content) > 0:
-                        print(f"\n💭 Content:")
+                        print(f"\nContent:")
                         # For tool results, format nicely
                         if "ToolMessage" in str(type(last_message)):
                             # Truncate long tool results
@@ -190,19 +182,19 @@ def query_agent(
             final_response = event
     
     except Exception as e:
-        print(f"\n❌ ERROR during agent execution: {e}")
+        print(f"\nERROR during agent execution: {e}")
         raise
     
     if verbose:
         print(f"\n{'=' * 80}")
-        print("✅ FINAL RESPONSE")
+        print("FINAL RESPONSE")
         print("=" * 80)
         if final_response and "messages" in final_response:
             last_msg = final_response["messages"][-1]
             if hasattr(last_msg, 'content'):
                 print(f"{last_msg.content}")
         print("=" * 80)
-        print(f"\n📊 Total Steps: {step_count}")
+        print(f"\nTotal Steps: {step_count}")
         print("=" * 80)
     
     return final_response
@@ -247,7 +239,7 @@ def get_final_answer(response: Dict[str, Any]) -> str:
 def test_agent():
     """Quick test of the agent with a simple query."""
     test_query = "How many MLOPs events have taken place to date? Names?."
-    print("🧪 Testing agent with query:", test_query)
+    print("Testing agent with query:", test_query)
     response = query_agent(test_query)
     return response
 
