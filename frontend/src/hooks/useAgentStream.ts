@@ -2,18 +2,25 @@ import { useState, useCallback, useRef } from 'react';
 import { API_ENDPOINTS } from '../lib/api';
 import { StreamEvent, StepData, AnswerData } from '../lib/types';
 
+function generateSessionId(): string {
+  return 'session_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+}
+
 interface UseAgentStreamReturn {
   messages: StreamEvent[];
   isLoading: boolean;
   error: string | null;
+  sessionId: string;
   streamAgent: (query: string) => Promise<void>;
   reset: () => void;
+  newConversation: () => void;
 }
 
 export function useAgentStream(): UseAgentStreamReturn {
   const [messages, setMessages] = useState<StreamEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string>(() => generateSessionId());
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const reset = useCallback(() => {
@@ -25,6 +32,11 @@ export function useAgentStream(): UseAgentStreamReturn {
       abortControllerRef.current = null;
     }
   }, []);
+
+  const newConversation = useCallback(() => {
+    reset();
+    setSessionId(generateSessionId());
+  }, [reset]);
 
   const streamAgent = useCallback(async (query: string) => {
     reset();
@@ -40,7 +52,7 @@ export function useAgentStream(): UseAgentStreamReturn {
           'Content-Type': 'application/json',
           'X-API-Key': API_KEY,
         },
-        body: JSON.stringify({ query, stream: true }),
+        body: JSON.stringify({ query, session_id: sessionId, stream: true }),
         signal: abortControllerRef.current.signal,
       });
 
@@ -101,7 +113,7 @@ export function useAgentStream(): UseAgentStreamReturn {
       setIsLoading(false);
       abortControllerRef.current = null;
     }
-  }, [reset]);
+  }, [sessionId, reset]);
 
-  return { messages, isLoading, error, streamAgent, reset };
+  return { messages, isLoading, error, sessionId, streamAgent, reset, newConversation };
 }

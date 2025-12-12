@@ -1,5 +1,6 @@
 export interface AgentQueryRequest {
   query: string;
+  session_id?: string;
   stream?: boolean;
 }
 

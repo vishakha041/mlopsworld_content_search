@@ -44,9 +44,17 @@ async def query_agent(
     try:
         # Import here to avoid circular imports
         from app.agent.agent import query_agent as execute_agent_query, get_final_answer
+        import uuid
 
-        # Execute agent query
-        response = execute_agent_query(request.query, verbose=True)
+        # Generate session_id if not provided
+        session_id = request.session_id or str(uuid.uuid4())
+
+        # Execute agent query with session context
+        response = execute_agent_query(
+            request.query, 
+            verbose=True,
+            thread_id=session_id
+        )
 
         # Extract steps from response
         steps = []
@@ -109,18 +117,25 @@ async def stream_agent_query(
         try:
             # Import agent functions
             from app.agent.agent import create_mlops_agent, get_final_answer
+            import uuid
+
+            # Generate session_id if not provided
+            session_id = request.session_id or str(uuid.uuid4())
 
             # Create agent
             agent_instance = create_mlops_agent()
 
             # Prepare input
             inputs = {"messages": [{"role": "user", "content": request.query}]}
+            
+            # Configure with thread_id for conversation history
+            config = {"configurable": {"thread_id": session_id}}
 
             # Stream agent execution
             step_count = 0
             final_response = None
 
-            async for event in agent_instance.astream(inputs, stream_mode="values"):
+            async for event in agent_instance.astream(inputs, config, stream_mode="values"):
                 step_count += 1
                 messages = event.get("messages", [])
 

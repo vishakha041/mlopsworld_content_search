@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     # Agent Configuration
     MAX_ITERATIONS: int = 20
     ENABLE_VERBOSE_OUTPUT: bool = True
+    MAX_CONVERSATION_HISTORY: int = 10
 
     # Tool Configuration
     EMBED_MODEL: str = "google/embeddinggemma-300m"
