@@ -1,4 +1,4 @@
-# 🤖 MLOps Events Agent
+# MLOps Events Agent
 
 > **An AI-powered semantic search and analysis platform for MLOps conference talks, built with ApertureDB, LangGraph, and Gemini 2.5 Pro**
 
@@ -9,7 +9,7 @@
 
 ---
 
-## 📖 Overview
+## Overview
 
 This project demonstrates the power of combining **multi-modal AI-native databases** with **agentic AI systems** to create an intelligent search and analysis platform. Built on MLOps Conference talks, the system enables natural language queries, semantic search across text and video content, speaker analytics, and trend analysis.
 
@@ -104,6 +104,7 @@ Descriptor Sets (Vector Indexes):
 - **Model**: Gemini 2.5 Pro (temperature=0.7)
 - **Prompt**: Comprehensive system prompt with 14 few-shot examples demonstrating tool usage
 - **Behavior**: Autonomously selects and chains tools based on user queries
+- **Short-term conversation history**: Session-scoped, in-memory conversation history is supported (configurable via `MAX_CONVERSATION_HISTORY`, default 10). The frontend can pass an optional `session_id` with each request; the backend uses this as the agent `thread_id`.
 
 ### Frontend Layer (Next.js)
 
@@ -152,6 +153,9 @@ Descriptor Sets (Vector Indexes):
 - Generated video embeddings capturing visual + audio semantics
 - Stored embeddings in `marengo_2_7` descriptor set
 - Ingested video blobs into ApertureDB Video entities
+
+#### Note:
+The current app uses the [cloud version](https://docs.aperturedata.io/Setup/server/Cloud) of ApertureDB. However, ApertureDB also provides a [community version](https://docs.aperturedata.io/Setup/server/Local) which can be run through Docker for local development and testing, and can be hosted on-premises.
 
 ### Phase 2: Query Development (`mlops_adb_queries.ipynb`)
 
@@ -289,7 +293,7 @@ Agent can autonomously:
 
 ---
 
-## 📊Dataset Statistics
+## Dataset Statistics
 
 - **Total Talks**: 280 unique conference presentations
 - **Events**: MLOps World, GenAI World (2023-2024)
@@ -325,7 +329,7 @@ Agent can autonomously:
 
 ---
 
-## 🏛️ Architecture Principles
+## Architecture Principles
 
 ### Clean Separation of Concerns
 ```
@@ -352,7 +356,7 @@ Database (ApertureDB)  → Data storage, vector search
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 .

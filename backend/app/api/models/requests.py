@@ -18,6 +18,10 @@ class AgentQueryRequest(BaseModel):
         min_length=1,
         examples=["Show me the most popular talks from 2024"]
     )
+    session_id: Optional[str] = Field(
+        default=None,
+        description="Optional session ID for conversation history. Auto-generated if not provided."
+    )
     stream: bool = Field(
         default=False,
         description="Enable streaming response (for future use)"

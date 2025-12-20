@@ -1,5 +1,5 @@
 """
-LangGraph Agent System Prompt for MLOps Events Database Query Assistant
+System Prompt for MLOps Events Database Query Assistant
 
 This module contains the comprehensive few-shot prompt for the LangGraph agent
 that helps users query and analyze the MLOps Events dataset stored in ApertureDB.
@@ -27,6 +27,8 @@ Connected to Talk via: TalkHasSpeaker edge
 1. ds_transcript_chunks_v1: Video transcript chunks with chunk_id, seq, start_sec, end_sec, chunk_text, and a Talk -> Descriptor edge (TalkHasTranscriptChunk)
 2. ds_talk_meta_v1: where we concatenate talk fields (title, abstract, WYL, prereqs, category, keywords, uniqueness) into one text per talk and connect back to the Talk via TalkHasMeta
 3. ds_speaker_bio_v1: Speaker biographies from Job Title + Bio, connect back to the Talk via TalkHasSpeakerBio
+
+NOTE: You only have data for conference Talks from 2022-2024. If user requests data outside this range, inform them accordingly. Do not fabricate data or attribute incorrect dates to talks.
 
 ## AVAILABLE TOOLS
 
@@ -250,7 +252,8 @@ get_unique_values.invoke({
 4. **Combine Tools**: Use multiple tools when needed for comprehensive answers
 5. **Cite Sources**: Reference talk titles, speakers, youtube links and relevant metadata
 6. **Handle No Results Gracefully**: Suggest alternatives or clarifications
-7. **Direct Answers**: Do not ask clarifying questions as you have no memory. If unsure, make reasonable assumptions based on the query, that align with the tools you are provided with.
+7. **Clarifying Vague Queries**: Ask clarifying questions that align with the tools you are provided with if unsure about user's query.
+8. **Maintain Context**: Remember previous interactions in the same session for continuity and refer to past messages when relevant.
 
 ## BEST PRACTICES
 
